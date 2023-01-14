@@ -3,6 +3,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -84,7 +85,6 @@ namespace ReadingCaptureFile
         private static ReadOnlySpan<byte> Utf8Bom => new byte[] { 0xEF, 0xBB, 0xBF };
         public static string ExtractJsonFileByJSonSerializer(string filePath)
         {
-
             var fileWExt = Path.GetFileNameWithoutExtension(filePath);
             var TestId = fileWExt.Split("_")[1];
             string FullQuery = string.Empty;
@@ -111,19 +111,29 @@ namespace ReadingCaptureFile
             byte[] a2Event = Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold");
             byte[] a3Event = Encoding.UTF8.GetBytes("lte-rrc.a3_Threshold");
             byte[] a4Event = Encoding.UTF8.GetBytes("lte-rrc.a4_Threshold");
-            byte[] crcEvebt = Encoding.UTF8.GetBytes("rrc.rrcConnectionReleaseComplete_element");
-            byte[] cNrcEvebt = Encoding.UTF8.GetBytes("rrc.rrcConnectionRelease_tree");
+            byte[] sCodecL1Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1");
+            byte[] sCodecL2Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 2");
+            byte[] crEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionRequest_element");//rrc.rrcConnectionRequest_element
+            byte[] rccCsEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionSetup_r3_element");
+            byte[] cscEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionSetupComplete_element"); //rrc.rrcConnectionSetupComplete_element
+            byte[] ddtEvent = Encoding.UTF8.GetBytes("gsm_a.dtap.msg_cc_type"); //gsm_a.dtap.gsm_a.dtap.msg_cc_type
+            byte[] crrcEvent = Encoding.UTF8.GetBytes("rrc.releaseCause"); //rrc.rrcConnectionRelease_tree.rrc.releaseCause
+            byte[] crcEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionReleaseComplete_element");
+
+
             while (reader.Read())
             {
-                string qrSt = string.Empty; string vaSt = string.Empty;               
+                string qrSt = string.Empty; string vaSt = string.Empty;
                 JsonTokenType tokenType = reader.TokenType;
                 switch (tokenType)
                 {
                     case JsonTokenType.StartObject:
                         total++;
                         break;
+                    case JsonTokenType.Null:
+                        break;
                     case JsonTokenType.PropertyName:
-                        if (reader.ValueTextEquals(ToktimeEpoch) )
+                        if (reader.ValueTextEquals(ToktimeEpoch))
                         {
                             // Assume valid JSON, known schema
                             reader.Read();
@@ -149,7 +159,7 @@ namespace ReadingCaptureFile
                             var ddd = reader.GetString();
                             qrSt += $",Event,v1 )";
                             vaSt += $",'A1event','{Encoding.UTF8.GetString(a1Event)}:{ddd}')";
-                            FullQuery += $"{ qrSt} {vaSt};\n";
+                            FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
                         if (reader.ValueTextEquals(a2Event)) //event2
@@ -162,7 +172,7 @@ namespace ReadingCaptureFile
                             var ddd = reader.GetString();
                             qrSt += $",Event,v2 )";
                             vaSt += $",'A2event','{Encoding.UTF8.GetString(a2Event)}:{ddd}')";
-                            FullQuery += $"{ qrSt} {vaSt};\n";
+                            FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
                         if (reader.ValueTextEquals(a3Event)) //event3
@@ -175,7 +185,7 @@ namespace ReadingCaptureFile
                             var ddd = reader.GetString();
                             qrSt += $",Event,v3 )";
                             vaSt += $",'A3event','{Encoding.UTF8.GetString(a3Event)}:{ddd}')";
-                            FullQuery += $"{ qrSt} {vaSt};\n";
+                            FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
                         if (reader.ValueTextEquals(a4Event)) //event4
@@ -188,40 +198,206 @@ namespace ReadingCaptureFile
                             var ddd = reader.GetString();
                             qrSt += $",Event,v4 )";
                             vaSt += $",'A4event','{Encoding.UTF8.GetString(a4Event)}:{ddd}')";
-                            FullQuery += $"{ qrSt} {vaSt};\n";
+                            FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
-                        if (reader.ValueTextEquals(crcEvebt)) //RRC Release Complete
+                        //|| reader.ValueTextEquals(sCodecL2Event)
+                        if (reader.ValueTextEquals(sCodecL1Event)) //Codec Bitmap for SysID 1 , Codec Bitmap for SysID 2
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            reader.Read();
+                            ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                            //رسیدن به شروع آبجکت 
+                            var dd = Encoding.UTF8.GetString(jsonElement); //JsonToken.StartObject for SysId1
+                            string v1Str = string.Empty;
+                            while (reader.TokenType != JsonTokenType.EndObject)
+                            {
+                                reader.Read();
+                                if (reader.TokenType != JsonTokenType.EndObject)
+                                {
+                                    var vvv = reader.GetString();
+                                    if (vvv.StartsWith("gsm_a"))
+                                    {
+                                        v1Str += vvv + ":";
+                                    }
+                                    else
+                                    {
+                                        v1Str += vvv + ",";
+                                    }
+                                }
+                            }
+                            reader.Read(); reader.Read(); reader.Read(); reader.Read(); reader.Read();
+                            string v2Str = string.Empty;
+                            if (reader.ValueTextEquals(sCodecL2Event))
+                            {
+                                reader.Read();
+                                ReadOnlySpan<byte> jsonElement2 = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                //رسیدن به شروع آبجکت 
+                                var dd2 = Encoding.UTF8.GetString(jsonElement2); //JsonToken.StartObject for SysId2                                
+                                while (reader.TokenType != JsonTokenType.EndObject)
+                                {
+                                    reader.Read();
+                                    if (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        var vvv = reader.GetString();
+                                        if (vvv.StartsWith("gsm_a"))
+                                        {
+                                            v2Str += vvv + ":";
+                                        }
+                                        else
+                                        {
+                                            v2Str += vvv + ",";
+                                        }
+                                    }
+                                }
+                            }
+                            // Assume valid JSON, known schema
+                            if (!string.IsNullOrEmpty(v1Str))
+                            {
+                                qrSt += $",Event ,V1)";
+                                vaSt += $",'WCDMA Supported Codec List','{v1Str}')";
+                            }
+                            if (!string.IsNullOrEmpty(v2Str))
+                            {
+                                qrSt += $",V2)";
+                                vaSt += $",'{v2Str}')";
+                            }
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(crEvent)) //rrc.rrcConnectionRequest_element
                         {
                             showQuery = true;
                             qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
                             vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
+                            //reader.Read();
+                            var ddd = reader.GetString();
+                            qrSt += $",Event )";
+                            vaSt += $",'RRC Connection Request')";
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(rccCsEvent)) //rrc.rrcConnectionSetup_r3_element
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema
+                            //reader.Read();
+                            var ddd = reader.GetString();
+                            qrSt += $",Event )";
+                            vaSt += $",'RCC Connection Setup')";
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(cscEvent)) //rrc.rrcConnectionSetupComplete_element
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema
+                            //reader.Read();
+                            var ddd = reader.GetString();
+                            qrSt += $",Event )";
+                            vaSt += $",'RRCConnectionSetupComplete(cs-domain)(ps-domain)')";
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(ddtEvent))
+                        {
+                            //DownlinkDirectTransfer(cs-domain)(DTAP) (CC) Disconnect,UplinkDirectTransfer(cs-domain)(DTAP) (CC) Alerting
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema
                             reader.Read();
+                            var ddd = reader.GetString();
+                            switch (ddd)
+                            {
+                                case "0x25":
+                                    qrSt += $",Event )";
+                                    vaSt += $",'DownlinkDirectTransfer(cs-domain)(DTAP) (CC) Disconnect')";
+                                    break;
+                                case "0x01":
+                                    qrSt += $",Event )";
+                                    vaSt += $",'UplinkDirectTransfer(cs-domain)(DTAP) (CC) Alerting')";
+                                    break;
+                                case "0x02":
+                                    qrSt += $",Event )";
+                                    vaSt += $",'domain(DTAP) (CC) Call Proceeding')";
+                                    break;
+                                case "0x05":
+                                    qrSt += $",Event )";
+                                    vaSt += $",'DownlinkDirectTransfer(cs-domain)(DTAP) (CC) Setup')";
+                                    break;
+
+                                /*Call End*/
+                                case "0x2a":
+                                    qrSt += $",Event,V1 )";
+                                    vaSt += $",'(DTAP) (CC) Release Complete','Cause - (28) Invalid number format (incomplete number)')";
+                                    break;
+                                /*Call End*/
+                                case "0x2d":
+                                    qrSt += $",Event )";
+                                    vaSt += $",'(DTAP) (CC) Release')";
+                                    break;
+                                /*Call End*/
+                                case "0x3f":
+                                    qrSt += $",Event )";
+                                    vaSt += $",'(DTAP) (RR) Immediate Assignment')";
+                                    break;
+                                /*Call End*/
+                                case "0x24":
+                                    qrSt += $",Event )";
+                                    vaSt += $",'(DTAP) (MM) CM Service Request')";
+                                    break;
+                            }
+
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(crcEvent)) //RRC Release Complete
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema
+                            //reader.Read();
                             var ddd = reader.GetString();
                             qrSt += $",Event )";
                             vaSt += $",'RRC Release Complete')";
-                            FullQuery += $"{ qrSt} {vaSt};\n";
+                            FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
-                        if (reader.ValueTextEquals(cNrcEvebt)) //RRC Normal Connection Release
+                        if (reader.ValueTextEquals(crrcEvent)) //RRC abnormal Connection Release and RRC Connection Release
                         {
                             showQuery = true;
                             qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
                             vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             reader.Read();
-                            var ddd = reader.GetString();
-                            qrSt += $",Event )";
-                            vaSt += $",'RRC Normal Connection Release')";
-                            FullQuery += $"{ qrSt} {vaSt};\n";
+                            var ddd = Convert.ToInt32(reader.GetString());
+                            if (ddd == 0)
+                            {
+                                qrSt += $",Event,V1 )";
+                                vaSt += $",'RRC Connection Release','rrc.releaseCause:{ddd}')";
+                            }
+                            else
+                            {
+                                qrSt += $",Event ,V1)";
+                                vaSt += $",'RRC abnormal Connection Release','rrc.releaseCause:{ddd}')";
+                            }
+                            FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
                         break;
                 }
-               
+
             }
-        
+
             //var ddd  =  JsonDocument.Parse(jsonString);
             //var topic = ddd.RootElement.EnumerateArray();
 
@@ -235,8 +411,8 @@ namespace ReadingCaptureFile
 
 
             // FullQuery = anotherMethod(TestId, FullQuery, jsonString);
-           // if (showQuery)
-                return FullQuery;
+            // if (showQuery)
+            return FullQuery;
         }
 
         private static string anotherMethod(string TestId, string FullQuery, string jsonString)
