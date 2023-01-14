@@ -256,13 +256,18 @@ namespace ReadingCaptureFile
                             // Assume valid JSON, known schema
                             if (!string.IsNullOrEmpty(v1Str))
                             {
-                                qrSt += $",Event ,V1)";
-                                vaSt += $",'WCDMA Supported Codec List','{v1Str}')";
+                                qrSt += $",Event ,V1";
+                                vaSt += $",'WCDMA Supported Codec List','{v1Str}'";
                             }
                             if (!string.IsNullOrEmpty(v2Str))
                             {
                                 qrSt += $",V2)";
                                 vaSt += $",'{v2Str}')";
+                            }
+                            else
+                            {
+                                qrSt += $")";
+                                vaSt += $")";
                             }
                             FullQuery += $"{qrSt} {vaSt};\n";
                             break;
