@@ -7,12 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.Data.SqlClient">
-      <HintPath>E:\Project\Kkom\Azure\kap400\MCIProbe-ActiveProbeSw\Kap400\bin\Debug\net5.0\System.Data.SqlClient.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+ 
 
 </Project>
