@@ -85,6 +85,7 @@ namespace ReadingCaptureFile
         private static ReadOnlySpan<byte> Utf8Bom => new byte[] { 0xEF, 0xBB, 0xBF };
         public static string ExtractJsonFileByJSonSerializer(string filePath)
         {
+            var filename = Path.GetFileName(filePath);
             var fileWExt = Path.GetFileNameWithoutExtension(filePath);
             var TestId = fileWExt.Split("_")[1];
             string FullQuery = string.Empty;
@@ -111,6 +112,11 @@ namespace ReadingCaptureFile
             byte[] a2Event = Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold");
             byte[] a3Event = Encoding.UTF8.GetBytes("lte-rrc.a3_Threshold");
             byte[] a4Event = Encoding.UTF8.GetBytes("lte-rrc.a4_Threshold");
+            byte[] trasMode = Encoding.UTF8.GetBytes("lte-rrc.transmissionMode");
+            byte[] nasepsn = Encoding.UTF8.GetBytes("nas_eps.nas_msg_emm_type");
+            byte[] cellupd = Encoding.UTF8.GetBytes("rrc.cellUpdate_element");
+            byte[] cellupdConf = Encoding.UTF8.GetBytes("rrc.cellUpdateConfirm_tree");
+            byte[] cqirpt = Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportModeAperiodic");
             byte[] sCodecL1Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1");
             byte[] sCodecL2Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 2");
             byte[] crEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionRequest_element");//rrc.rrcConnectionRequest_element
@@ -152,34 +158,73 @@ namespace ReadingCaptureFile
                         if (reader.ValueTextEquals(a1Event)) //event1
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
-                            reader.Read();
+                            qrSt += $",Event";
+                            vaSt += $",'RRC event A1'";
+                            reader.Read(); //value of lte-rrc.a1_Threshold
                             var ddd = reader.GetString();
-                            qrSt += $",Event,v1 )";
-                            vaSt += $",'A1event','{Encoding.UTF8.GetString(a1Event)}:{ddd}')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
+                            if (!string.IsNullOrEmpty(ddd))
+                            {
+                                qrSt += $",v1";
+                                vaSt += $",'{Encoding.UTF8.GetString(a1Event)}:{ddd}'";
+                                reader.Read();reader.Read();reader.Read();
+                                var v2Title = reader.GetString();
+                                if (!string.IsNullOrEmpty(v2Title))
+                                {
+                                    reader.Read();
+                                    var v2Value = reader.GetString();
+                                    qrSt += $",v2 )";
+                                    vaSt += $",'{v2Title}:{v2Value}')";
+                                }
+                                else
+                                {
+                                    qrSt += $")";
+                                    vaSt += $")";
+                                }
+                                FullQuery += $"{qrSt} {vaSt};\n";
+                            }                            
                             break;
                         }
                         if (reader.ValueTextEquals(a2Event)) //event2
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
-                            reader.Read();
+                            qrSt += $",Event";
+                            vaSt += $",'RRC event A2'";
+                            reader.Read(); //value of lte-rrc.a1_Threshold
                             var ddd = reader.GetString();
-                            qrSt += $",Event,v2 )";
-                            vaSt += $",'A2event','{Encoding.UTF8.GetString(a2Event)}:{ddd}')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
+                            if (!string.IsNullOrEmpty(ddd))
+                            {
+                                qrSt += $",v1";
+                                vaSt += $",'{Encoding.UTF8.GetString(a1Event)}:{ddd}'";
+                                reader.Read(); reader.Read(); reader.Read();
+                                var v2Title = reader.GetString();
+                                if (!string.IsNullOrEmpty(v2Title))
+                                {
+                                    reader.Read();
+                                    var v2Value = reader.GetString();
+                                    qrSt += $",v2 )";
+                                    vaSt += $",'{v2Title}:{v2Value}')";
+                                }
+                                else
+                                {
+                                    qrSt += $")";
+                                    vaSt += $")";
+                                }
+                                FullQuery += $"{qrSt} {vaSt};\n";
+                            }
                             break;
                         }
+                      
                         if (reader.ValueTextEquals(a3Event)) //event3
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             reader.Read();
                             var ddd = reader.GetString();
@@ -191,8 +236,8 @@ namespace ReadingCaptureFile
                         if (reader.ValueTextEquals(a4Event)) //event4
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             reader.Read();
                             var ddd = reader.GetString();
@@ -201,12 +246,124 @@ namespace ReadingCaptureFile
                             FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
-                        //|| reader.ValueTextEquals(sCodecL2Event)
+                        if (reader.ValueTextEquals(cellupd)) //rrc.cellUpdate_element
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema                            
+                            qrSt += $",Event )";
+                            vaSt += $",'RRC Cell Update')";
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(cellupdConf)) //rrc.cellUpdateConfig_tree
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema                           
+                            qrSt += $",Event )";
+                            vaSt += $",'RRC Cell Update Confirm')";
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(cqirpt)) //lte-rrc.cqi_ReportModeAperiodic
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
+                            qrSt += $",Event";
+                            vaSt += $",'RRC CQI Report'";
+                            reader.Read();
+                            string rmqVal = reader.GetString();                            
+                            if(!string.IsNullOrEmpty(rmqVal))
+                            {
+                                qrSt += $",V1";
+                                vaSt += $",'{Encoding.UTF8.GetString(cqirpt)}:{rmqVal}'";
+                            }
+                            while(reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportPeriodic")))
+                            {
+                                reader.Read();
+                            }
+                            reader.Read(); //value of lte-rrc.cqi_ReportPeriodic
+                            string rpcVal = reader.GetString();
+                            if (!string.IsNullOrEmpty(rpcVal))
+                            {                                
+                                qrSt += $",V2";
+                                vaSt += $",'lte-rrc.cqi_ReportPeriodic:{rpcVal}'";
+                            }
+                            while(reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_PUCCH_ResourceIndex")))
+                            {
+                                reader.Read();
+                            }
+                            reader.Read(); //value of lte-rrc.cqi_PUCCH_ResourceIndex
+                            string puccVal = reader.GetString();
+                            if (!string.IsNullOrEmpty(puccVal))
+                            {
+                                qrSt += $",V3";
+                                vaSt += $",'lte-rrc.cqi_PUCCH_ResourceIndex:{puccVal}'";
+                            }
+                            qrSt += $")";
+                            vaSt += $")";                            
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(trasMode)) //lte-rrc.transmissionMode
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema
+                            qrSt += $",Event";
+                            vaSt += $",'RRC Antenna Info'";
+                            reader.Read(); //value of lte-rrc.a1_Thresholdlte-rrc.transmissionMode
+                            var ddd = reader.GetString();
+                            if (!string.IsNullOrEmpty(ddd))
+                            {
+                                qrSt += $",v1)";
+                                vaSt += $",'{Encoding.UTF8.GetString(trasMode)}:{ddd}')";                                                            
+                            }
+                            else
+                            {
+                                qrSt += $")";
+                                vaSt += $")";
+                            }
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(nasepsn)) //nas_eps.nas_msg_emm_type
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema                            
+
+                            reader.Read(); //get value of nas_eps.nas_msg_emm_type
+                            var ddd = reader.GetString();
+                            if(ddd=="0x48")
+                            {
+                                qrSt += $",Event)";
+                                vaSt += $",'Tracking area update request')"; FullQuery += $"{qrSt} {vaSt};\n";
+                            }
+                            if (ddd == "0x49")
+                            {
+                                qrSt += $",Event)";
+                                vaSt += $",'Tracking area update accept')"; FullQuery += $"{qrSt} {vaSt};\n";
+                            }
+                            if (ddd == "0x4a")
+                            {
+                                qrSt += $",Event)";
+                                vaSt += $",'Tracking area update complete')";FullQuery += $"{qrSt} {vaSt};\n";
+                            }
+                            
+                            break;
+                        }
                         if (reader.ValueTextEquals(sCodecL1Event)) //Codec Bitmap for SysID 1 , Codec Bitmap for SysID 2
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             reader.Read();
                             ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
                             //رسیدن به شروع آبجکت 
@@ -275,8 +432,8 @@ namespace ReadingCaptureFile
                         if (reader.ValueTextEquals(crEvent)) //rrc.rrcConnectionRequest_element
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             //reader.Read();
                             var ddd = reader.GetString();
@@ -288,8 +445,8 @@ namespace ReadingCaptureFile
                         if (reader.ValueTextEquals(rccCsEvent)) //rrc.rrcConnectionSetup_r3_element
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             //reader.Read();
                             var ddd = reader.GetString();
@@ -301,8 +458,8 @@ namespace ReadingCaptureFile
                         if (reader.ValueTextEquals(cscEvent)) //rrc.rrcConnectionSetupComplete_element
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             //reader.Read();
                             var ddd = reader.GetString();
@@ -315,8 +472,8 @@ namespace ReadingCaptureFile
                         {
                             //DownlinkDirectTransfer(cs-domain)(DTAP) (CC) Disconnect,UplinkDirectTransfer(cs-domain)(DTAP) (CC) Alerting
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             reader.Read();
                             var ddd = reader.GetString();
@@ -367,8 +524,8 @@ namespace ReadingCaptureFile
                         if (reader.ValueTextEquals(crcEvent)) //RRC Release Complete
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             //reader.Read();
                             var ddd = reader.GetString();
@@ -380,8 +537,8 @@ namespace ReadingCaptureFile
                         if (reader.ValueTextEquals(crrcEvent)) //RRC abnormal Connection Release and RRC Connection Release
                         {
                             showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}',{TokenNo},'{Tokendt}'";
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema
                             reader.Read();
                             var ddd = Convert.ToInt32(reader.GetString());
