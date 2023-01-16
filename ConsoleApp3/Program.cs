@@ -557,36 +557,38 @@ namespace ReadingCaptureFile
                             {
                                 qrSt += $",Event ";
                                 vaSt += $",'(DTAP) (RR) Immediate Assignment'";
-                                while (!reader.ValueTextEquals("gsm_a.rr.packet_channel_type") )
-                                {
-                                    reader.Read();                                    
-                                    if(reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject)
-                                    {
-                                        reader.Read();
-                                    }
-                                }
-                                var d = $"{{{reader.GetString()}:"; //gsm_a.rr.packet_channel_type key
-                                reader.Read();
-                                d += $"{reader.GetString()},"; //gsm_a.rr.packet_channel_type value
-                                var V1alue = d;
+                                //while (!reader.ValueTextEquals("gsm_a.rr.packet_channel_type") )
+                                //{
+                                //    reader.Read();                                    
+                                //    if(reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject)
+                                //    {
+                                //        reader.Read();
+                                //    }
+                                //}
+                                //var d = $"{{{reader.GetString()}:"; //gsm_a.rr.packet_channel_type key
+                                //reader.Read();
+                                //d += $"{reader.GetString()},"; //gsm_a.rr.packet_channel_type value
+                                //var V1alue = d;
 
-                                while (!reader.ValueTextEquals("gsm_a.rr.timeslot"))
-                                {
-                                    reader.Read();
-                                    if (reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject)
-                                    {
-                                        reader.Read();
-                                    }
-                                }                               
-                                d += $"{reader.GetString()}:"; //gsm_a.rr.timeslot key
-                                var V2alue = reader.GetString();
-                                reader.Read();
-                                d += $"{reader.GetString()}}}"; //gsm_a.rr.timeslot value
-                                V2alue += $":{reader.GetString()}";
+                                //while (!reader.ValueTextEquals("gsm_a.rr.timeslot"))
+                                //{
+                                //    reader.Read();
+                                //    if (reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject)
+                                //    {
+                                //        reader.Read();
+                                //    }
+                                //}                               
+                                //d += $"{reader.GetString()}:"; //gsm_a.rr.timeslot key
+                                //var V2alue = reader.GetString();
+                                //reader.Read();
+                                //d += $"{reader.GetString()}}}"; //gsm_a.rr.timeslot value
+                                //V2alue += $":{reader.GetString()}";
 
-                                qrSt += ",v1,v2,v3)";
-                                vaSt += $",'{V1alue}','{V2alue}','{d}')";
+                                //qrSt += ",v1,v2,v3";
+                                //vaSt += $",'{V1alue}','{V2alue}','{d}'";
 
+                                qrSt += ")";
+                                vaSt += ")";
                                 FullQuery += $"{qrSt} {vaSt};\n";
                             }   
                             break;
