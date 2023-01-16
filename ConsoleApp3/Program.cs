@@ -577,8 +577,7 @@ namespace ReadingCaptureFile
                                     {
                                         reader.Read();
                                     }
-                                }
-                               
+                                }                               
                                 d += $"{reader.GetString()}:"; //gsm_a.rr.timeslot key
                                 var V2alue = reader.GetString();
                                 reader.Read();
