@@ -122,7 +122,9 @@ namespace ReadingCaptureFile
            
             byte[] crrcEvent = Encoding.UTF8.GetBytes("rrc.releaseCause"); //rrc.rrcConnectionRelease_tree.rrc.releaseCause
 
-            byte[] msgrrTyp = Encoding.UTF8.GetBytes("gsm_a.dtap.msg_rr_type");//gsm_a.dtap.msg_rr_type
+            byte[] rbinfoTyp = Encoding.UTF8.GetBytes("rrc.rb_InformationReconfigList");//gsm_a.dtap.msg_mm_type
+            byte[] msgrrTyp = Encoding.UTF8.GetBytes("gsm_a.dtap.msg_mm_type");//gsm_a.dtap.msg_mm_type
+            byte[] msgmmTyp = Encoding.UTF8.GetBytes("gsm_a.dtap.msg_rr_type");//gsm_a.dtap.msg_rr_type , ناتمام
             byte[] crEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionRequest_element");
             byte[] trEvent = Encoding.UTF8.GetBytes("lte-rrc.rrcConnectionRequest_element");
 
@@ -261,18 +263,30 @@ namespace ReadingCaptureFile
                             vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema                            
                             qrSt += $",Event )";
-                            vaSt += $",'RRC Cell Update')";
+                            vaSt += $",'WCDMA RRC Cell Update')";
                             FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
-                        if (reader.ValueTextEquals(cellupdConf)) //rrc.cellUpdateConfig_tree
+                        if (reader.ValueTextEquals(rbinfoTyp)) //rrc.rb_InformationReconfigList
+                        {
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema                            
+                            var ddd = reader.GetString(); //value rrc.rb_InformationReconfigList
+                            qrSt += $",Event ,v1)";
+                            vaSt += $",'WCDMA RB Infoe','rrc.rb_InformationReconfigList:{ddd}')";
+                            FullQuery += $"{qrSt} {vaSt};\n";
+                            break;
+                        }
+                        if (reader.ValueTextEquals(cellupdConf)) //rrc.cellUpdateConfirm_tree
                         {
                             showQuery = true;
                             qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
                             vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
                             // Assume valid JSON, known schema                           
                             qrSt += $",Event )";
-                            vaSt += $",'RRC Cell Update Confirm')";
+                            vaSt += $",'WCDMA RRC Cell Update Confirm')";
                             FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
@@ -511,7 +525,24 @@ namespace ReadingCaptureFile
                             FullQuery += $"{qrSt} {vaSt};\n";
                             break;
                         }
+                        if (reader.ValueTextEquals(msgmmTyp))
+                        {
+                            //(DTAP) (MM) CM Service Request
+                            showQuery = true;
+                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
+                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
+                            // Assume valid JSON, known schema
+                            reader.Read();
+                            var ddd = reader.GetString();
+                            if (ddd == "0x24")
+                            {
+                                qrSt += $",Event )";
+                                vaSt += $",'(DTAP) (MM) CM Service Request')";
 
+                                FullQuery += $"{qrSt} {vaSt};\n";
+                            }
+                            break;
+                        }
 
                         if (reader.ValueTextEquals(msgrrTyp))
                         {
