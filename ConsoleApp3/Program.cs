@@ -44,7 +44,6 @@ namespace ReadingCaptureFile
             var fileWExt = Path.GetFileNameWithoutExtension(filePath);
             var TestId = fileWExt.Split("_")[1];
             string FullQuery = string.Empty;
-            bool showQuery = false;
             string jsonString = File.ReadAllText(filePath);//.Replace("\n","").Replace("\r","");
 
 
@@ -56,8 +55,7 @@ namespace ReadingCaptureFile
                 jsonReadOnlySpan = jsonReadOnlySpan.Slice(Utf8Bom.Length);
             }
             var reader = new Utf8JsonReader(jsonReadOnlySpan);
-            int total = 0;
-            int nextToken = 0;
+            var OnecCheck = false;
             DateTime Tokendt = DateTime.Now;
             byte[] sCodecL2Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 2"); 
             byte[] lteRrcCons = Encoding.UTF8.GetBytes("lte-rrc.rrcConnectionSetup_element");/*ناتمام*/
@@ -69,23 +67,25 @@ namespace ReadingCaptureFile
                 JsonTokenType tokenType = reader.TokenType;
                 switch (tokenType)
                 {
-                    case JsonTokenType.StartObject:
-                        total++;
-                        break;
+                    case JsonTokenType.StartObject:                        
                     case JsonTokenType.Null:
+                    case JsonTokenType.EndObject:
+                    case JsonTokenType.StartArray:
+                    case JsonTokenType.EndArray:                        
+                        //reader.Read();
                         break;
                     case JsonTokenType.PropertyName:
                         if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("_index")))
-                        {
-                                nextToken++;
-                                Console.WriteLine(nextToken);
-                                if (dd.Count > 1)
-                                    setQuery(dd);
+                        {                         
+                                if (dd.Count > 3)
+                                {
+                                    setQuery(dd, TestId, filename);
+                                }
                                 dd = new Dictionary<string, string>();                           
                             break;
                         }
                         else
-                        {
+                        {                           
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.time_epoch")))
                             {
                                 // Assume valid JSON, known schema
@@ -102,18 +102,31 @@ namespace ReadingCaptureFile
                                 dd.Add("TokenNo", reader.GetString());
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold"))) //event1
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold"))) //event1                            
                             {
                                 var key = reader.GetString();
                                 reader.Read(); //value of lte-rrc.a1_Threshold                           
                                 dd.Add(key, reader.GetString());
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event1,2
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold_tree")))
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event1
                             {
                                 var key = reader.GetString();
+                                while (
+                                    (reader.TokenType == JsonTokenType.Null ||
+                                    reader.TokenType == JsonTokenType.StartObject ||
+                                    reader.TokenType == JsonTokenType.EndObject ||
+                                    reader.TokenType == JsonTokenType.EndArray ||
+                                    reader.TokenType == JsonTokenType.StartArray)
+                                    && !reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))
+                                    )
+                                {
+                                    reader.Read();                                    
+                                }
+                                key += "." + reader.GetString();
                                 reader.Read(); //value of lte-rrc.threshold_RSRQ                           
-                                dd.Add(key, reader.GetString());
+                                dd.Add(key, reader.GetString());                                
                                 break;
                             }
 
@@ -121,6 +134,26 @@ namespace ReadingCaptureFile
                             {
                                 var key = reader.GetString();
                                 reader.Read(); //value of lte-rrc.a2_Threshold                           
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold_tree")))
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event2
+                            {
+                                var key = reader.GetString();
+                                while (
+                                    (reader.TokenType == JsonTokenType.Null ||
+                                    reader.TokenType == JsonTokenType.StartObject ||
+                                    reader.TokenType == JsonTokenType.EndObject ||
+                                    reader.TokenType == JsonTokenType.EndArray ||
+                                    reader.TokenType == JsonTokenType.StartArray)
+                                    && !reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))
+                                    )
+                                {
+                                    reader.Read();
+                                }
+                                key += "." + reader.GetString();
+                                reader.Read(); //value of lte-rrc.threshold_RSRQ                           
                                 dd.Add(key, reader.GetString());
                                 break;
                             }
@@ -254,13 +287,13 @@ namespace ReadingCaptureFile
                                 dd.Add(key, reader.GetString());
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.allowedMeasBandwidth")))
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.allowedMeasBandwidth")))
+                            //{
+                            //    var key = reader.GetString();
+                            //    reader.Read();
+                            //    dd.Add(key, reader.GetString());
+                            //    break;
+                            //}
                             //
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventB1_element"))) //lte-rrc.eventB1_element     
                             {
@@ -297,11 +330,40 @@ namespace ReadingCaptureFile
                                 dd.Add(key, reader.GetString());
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timing_adv"))) //gsm_a.rr.timing_adv
+                            if(reader.ValueTextEquals(Encoding.UTF8.GetBytes("Timing Advance")))
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timing_adv"))) //gsm_a.rr.timing_adv
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                bool ReadUnitl = false;
+                                while (!ReadUnitl)
+                                {
+                                    if (reader.TokenType == JsonTokenType.Null || 
+                                        reader.TokenType == JsonTokenType.StartObject || 
+                                        reader.TokenType == JsonTokenType.EndObject ||
+                                        reader.TokenType == JsonTokenType.EndArray || 
+                                        reader.TokenType == JsonTokenType.StartArray)
+                                    {
+                                        reader.Read();
+                                    }
+                                    else
+                                    {                                       
+                                        if (!reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timing_adv")))
+                                        {
+                                            reader.Read();
+                                        }
+                                        else
+                                        {
+                                            var key1 = reader.GetString();
+                                            reader.Read();
+                                            dd.Add(key1, reader.GetString());
+                                            ReadUnitl = true;
+                                            break;
+                                        }
+                                        
+                                    }
+                                }
+                                //var key = reader.GetString();
+                                //reader.Read();
+                                //dd.Add(key, reader.GetString());
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.srb_ToAddModList"))) //lte-rrc.srb_ToAddModList
@@ -374,64 +436,38 @@ namespace ReadingCaptureFile
                                 dd.Add(key, reader.GetString());
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1"))) //Codec Bitmap for SysID 1 , Codec Bitmap for SysID 2
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1"))) //Codec Bitmap for SysID 1
                             {
                                 reader.Read();
                                 ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
-                                string v1Str = string.Empty;
                                 while (reader.TokenType != JsonTokenType.EndObject)
                                 {
                                     reader.Read();
                                     if (reader.TokenType != JsonTokenType.EndObject)
                                     {
-                                        var key = reader.GetString();
+                                        var key = reader.GetString()+"1";
                                         reader.Read();
                                         var valuek = reader.GetString();
                                         dd.Add(key, valuek);
                                     }
-                                }
-                                reader.Read(); reader.Read(); reader.Read(); reader.Read(); reader.Read();
-                                string v2Str = string.Empty;
-                                if (reader.ValueTextEquals(sCodecL2Event))
+                                }                               
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Codec Bitmap for SysID 2"))) // Codec Bitmap for SysID 2
+                            {
+                                reader.Read();
+                                ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                while (reader.TokenType != JsonTokenType.EndObject)
                                 {
                                     reader.Read();
-                                    ReadOnlySpan<byte> jsonElement2 = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
-                                    //رسیدن به شروع آبجکت 
-                                    var dd2 = Encoding.UTF8.GetString(jsonElement2); //JsonToken.StartObject for SysId2                                
-                                    while (reader.TokenType != JsonTokenType.EndObject)
+                                    if (reader.TokenType != JsonTokenType.EndObject)
                                     {
+                                        var key = reader.GetString()+"2";
                                         reader.Read();
-                                        if (reader.TokenType != JsonTokenType.EndObject)
-                                        {
-                                            var vvv = reader.GetString();
-                                            if (vvv.StartsWith("gsm_a"))
-                                            {
-                                                v2Str += vvv + ":";
-                                            }
-                                            else
-                                            {
-                                                v2Str += vvv + ",";
-                                            }
-                                        }
+                                        var valuek = reader.GetString();
+                                        dd.Add(key, valuek);
                                     }
-                                }
-                                // Assume valid JSON, known schema
-                                if (!string.IsNullOrEmpty(v1Str))
-                                {
-                                    qrSt += $",Event ,V1";
-                                    vaSt += $",'WCDMA Supported Codec List','{v1Str}'";
-                                }
-                                if (!string.IsNullOrEmpty(v2Str))
-                                {
-                                    qrSt += $",V2)";
-                                    vaSt += $",'{v2Str}')";
-                                }
-                                else
-                                {
-                                    qrSt += $")";
-                                    vaSt += $")";
-                                }
-                                FullQuery += $"{qrSt} {vaSt};\n";
+                                }                                
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionRequest_element"))) //rrc.rrcConnectionRequest_element
@@ -493,29 +529,59 @@ namespace ReadingCaptureFile
 
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_rr_type")))
                             {
-                                var key = reader.GetString();
+                                //var key = reader.GetString();
                                 reader.Read();
                                 var ddd = reader.GetString();
                                 if (ddd == "0x3f")
                                 {
-                                    dd.Add(key, "(DTAP) (RR) Immediate Assignment");
+                                    //dd.Add(key, "(DTAP) (RR) Immediate Assignment");
+                                    while (reader.TokenType == JsonTokenType.Null || reader.TokenType==JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject || reader.TokenType ==JsonTokenType.EndArray || reader.TokenType ==JsonTokenType.StartArray)
+                                    {
+
+                                        reader.Read();
+                                        if (!reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.packet_channel_type"))){
+                                            reader.Read();
+                                        }
+                                        else
+                                        {
+                                            var key1 = reader.GetString();
+                                            reader.Read();
+                                            dd.Add(key1, reader.GetString());
+                                        }
+                                    }
+                                   
+                                    while (reader.TokenType == JsonTokenType.Null || reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject || reader.TokenType == JsonTokenType.EndArray || reader.TokenType == JsonTokenType.StartArray)                                        
+                                    {
+                                        reader.Read();
+                                        if (!reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timeslot")))
+                                        {
+                                            reader.Read();
+                                        }
+                                        else
+                                        {
+                                            var key1 = reader.GetString();
+                                            reader.Read();
+                                            dd.Add(key1, reader.GetString());
+                                        }
+                                    }
+                                   
                                 }
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.packet_channel_type")))
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timeslot")))
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.packet_channel_type")))
+                            //{
+                            //    var key = reader.GetString();
+                            //    reader.Read();
+                            //    dd.Add(key, reader.GetString());
+                            //    break;
+                            //}
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timeslot")))
+                            //{
+                            //    var key = reader.GetString();
+                            //    reader.Read();
+                            //    dd.Add(key, reader.GetString());
+                            //    break;
+                            //}
                             //gsm_a.dtap→Measurement Results
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.rxlev_full_serv_cell")))
                             {
@@ -785,12 +851,33 @@ namespace ReadingCaptureFile
             return FullQuery;
         }
 
-        private static void setQuery(Dictionary<string, string> dd)
+        private static void setQuery(Dictionary<string, string> dd,string TestId,string filename)
         {
-            foreach (var item in dd)
+            var qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName";
+            var vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}'";
+            /*DateTime Token*/
+            var dt = dd.FirstOrDefault(x => x.Key.Equals("Tokendt")).Value;
+            var time = Convert.ToDouble(dt);
+            var Tokendt = FromUnixTime((long)time);
+            qrSt += $",TokenTime"; vaSt += $",'{Tokendt}'";
+            /*Tonken Number*/
+            var tNo = dd.FirstOrDefault(x => x.Key.Equals("TokenNo")).Value;            
+            
+            qrSt += $",TokenNo"; vaSt += $",{tNo}";
+
+            var echPrpp = string.Empty;
+            foreach (var item in dd.Where(x=>x.Key !="Tokendt" && x.Key !="TokenNo"))
             {
-                Console.WriteLine(item);
+                 echPrpp += $"\"{item.Key}\" :\"{item.Value}\",";                
+                //Console.WriteLine(echPrpp);
+
             }
+            echPrpp = echPrpp.Remove(echPrpp.Length - 1);            
+            var allV1 = $"{{{echPrpp}}}";
+             qrSt += ",V1) ";
+            vaSt += $",'{allV1}')";
+            AdoCommand($"{qrSt}{vaSt}");
+            Console.WriteLine($"{qrSt}{vaSt}");
         }
 
         public static DateTime FromUnixTime(long unixTime)
