@@ -20,51 +20,8 @@ namespace ReadingCaptureFile
     public class Program
     {
         public static void Main(string[] args)
-        {
-            //List<Pcap> o;
-            //using (FileStream s = File.Open("a.json", FileMode.Open))
-            //using (StreamReader sr = new StreamReader(s))
-            //using (JsonReader reader = new JsonTextReader(sr))
-            //{
-            //    reader.SupportMultipleContent = true;
-
-            //    JsonSerializer serializer = new();
-
-            //    while (reader.Read())
-            //    {
-            //        //    // deserialize only when there's "{" character in the stream
-            //        //    if (reader.TokenType == JsonToken.StartObject)
-            //        //    {
-            //        o = serializer.Deserialize<List<Pcap>>(reader);
-            //        //    }
-            //    }
-            //}
-
-            //string json = File.ReadAllText(jsonFilePath);
-            //Dictionary<string, object> json_Dictionary = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-
-            //foreach (var item in json_Dictionary)
-            //{
-            //    // parse here
-            //}
-
-            //using (StreamReader r = new StreamReader("a.json"))
-            //{
-            //    string json = r.ReadToEnd();
-            //    dynamic array = JsonConvert.DeserializeObject(json);
-            //    foreach (var item in array)
-            //    {                    
-            //        Console.WriteLine("{0} {1}", item._source.layers.frame, item._source.layers.ip);
-            //    }
-            //}
-            //List<Pcap> items;
-            //using (StreamReader r = new StreamReader("a.json"))
-            //{
-            //    string json = r.ReadToEnd();
-            //     items = JsonConvert.DeserializeObject<List<Pcap>>(json); //Use a lot of memeory
-            //}
+        {          
             StringBuilder querystr = new StringBuilder();
-
             string outputFolder = "L3Mess/";
             var jsonDir = Directory.EnumerateFiles(outputFolder).Where(x => x.Contains(".json")).ToList();
             foreach (var jsonFile in jsonDir)
@@ -79,8 +36,6 @@ namespace ReadingCaptureFile
                 AdoCommand(querystr.ToString());
                 Console.WriteLine(querystr.ToString());
             }
-
-
         }
         private static ReadOnlySpan<byte> Utf8Bom => new byte[] { 0xEF, 0xBB, 0xBF };
         public static string ExtractJsonFileByJSonSerializer(string filePath)
@@ -101,42 +56,13 @@ namespace ReadingCaptureFile
                 jsonReadOnlySpan = jsonReadOnlySpan.Slice(Utf8Bom.Length);
             }
             var reader = new Utf8JsonReader(jsonReadOnlySpan);
-            int count = 0;
             int total = 0;
-            bool isagain = false;
+            int nextToken = 0;
             DateTime Tokendt = DateTime.Now;
-            int TokenNo = 0;
-            byte[] ToktimeEpoch = Encoding.UTF8.GetBytes("frame.time_epoch");
-            byte[] TokNo = Encoding.UTF8.GetBytes("frame.number");
-            byte[] a1Event = Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold");
-            byte[] a2Event = Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold");
-            byte[] a3Event = Encoding.UTF8.GetBytes("lte-rrc.a3_Threshold");
-            byte[] a4Event = Encoding.UTF8.GetBytes("lte-rrc.a4_Threshold");
-            byte[] trasMode = Encoding.UTF8.GetBytes("lte-rrc.transmissionMode");
-            byte[] nasepsn = Encoding.UTF8.GetBytes("nas_eps.nas_msg_emm_type");
-            byte[] cellupd = Encoding.UTF8.GetBytes("rrc.cellUpdate_element");
-            byte[] cellupdConf = Encoding.UTF8.GetBytes("rrc.cellUpdateConfirm_tree");
-            byte[] cqirpt = Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportModeAperiodic");
-            byte[] sCodecL1Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1");
-            byte[] sCodecL2Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 2");
-           
-            byte[] crrcEvent = Encoding.UTF8.GetBytes("rrc.releaseCause"); //rrc.rrcConnectionRelease_tree.rrc.releaseCause
-
-            byte[] rbinfoTyp = Encoding.UTF8.GetBytes("rrc.rb_InformationReconfigList");//gsm_a.dtap.msg_mm_type
-            byte[] msgrrTyp = Encoding.UTF8.GetBytes("gsm_a.dtap.msg_mm_type");//gsm_a.dtap.msg_mm_type
-            byte[] msgmmTyp = Encoding.UTF8.GetBytes("gsm_a.dtap.msg_rr_type");//gsm_a.dtap.msg_rr_type , ناتمام
-            byte[] crEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionRequest_element");
-            byte[] trEvent = Encoding.UTF8.GetBytes("lte-rrc.rrcConnectionRequest_element");
-
-            byte[] rccCsEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionSetup_r3_element");
+            byte[] sCodecL2Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 2"); 
             byte[] lteRrcCons = Encoding.UTF8.GetBytes("lte-rrc.rrcConnectionSetup_element");/*ناتمام*/
-            byte[] cscEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionSetupComplete_element"); 
-            byte[] ddtEvent = Encoding.UTF8.GetBytes("gsm_a.dtap.msg_cc_type"); //gsm_a.dtap.gsm_a.dtap.msg_cc_type
-            byte[] rrcRcEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionRelease_r3_element");
-            byte[] lrrcvent = Encoding.UTF8.GetBytes("lte-rrc.releaseCause");
-            byte[] crcEvent = Encoding.UTF8.GetBytes("rrc.rrcConnectionReleaseComplete_element");
 
-
+            Dictionary<string, string> dd = new Dictionary<string, string>(); ;
             while (reader.Read())
             {
                 string qrSt = string.Empty; string vaSt = string.Empty;
@@ -149,1005 +75,722 @@ namespace ReadingCaptureFile
                     case JsonTokenType.Null:
                         break;
                     case JsonTokenType.PropertyName:
-                        if (reader.ValueTextEquals(ToktimeEpoch))
+                        if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("_index")))
                         {
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            //var ddd = reader.GetString();
-                            var time = Convert.ToDouble(reader.GetString());
-                            Tokendt = FromUnixTime((long)time);
+                                nextToken++;
+                                Console.WriteLine(nextToken);
+                                if (dd.Count > 1)
+                                    setQuery(dd);
+                                dd = new Dictionary<string, string>();                           
                             break;
                         }
-                        if (reader.ValueTextEquals(TokNo))
+                        else
                         {
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            TokenNo = Convert.ToInt32(reader.GetString());
-                            break;
-                        }
-                        if (reader.ValueTextEquals(a1Event)) //event1
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            qrSt += $",Event";
-                            vaSt += $",'RRC event A1'";
-                            reader.Read(); //value of lte-rrc.a1_Threshold
-                            var ddd = reader.GetString();
-                            if (!string.IsNullOrEmpty(ddd))
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.time_epoch")))
                             {
-                                qrSt += $",v1";
-                                vaSt += $",'{Encoding.UTF8.GetString(a1Event)}:{ddd}'";
-                                reader.Read();reader.Read();reader.Read();
-                                var v2Title = reader.GetString();
-                                if (!string.IsNullOrEmpty(v2Title))
-                                {
-                                    reader.Read();
-                                    var v2Value = reader.GetString();
-                                    qrSt += $",v2 )";
-                                    vaSt += $",'{v2Title}:{v2Value}')";
-                                }
-                                else
-                                {
-                                    qrSt += $")";
-                                    vaSt += $")";
-                                }
-                                FullQuery += $"{qrSt} {vaSt};\n";
-                            }                            
-                            break;
-                        }
-                        if (reader.ValueTextEquals(a2Event)) //event2
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            qrSt += $",Event";
-                            vaSt += $",'RRC event A2'";
-                            reader.Read(); //value of lte-rrc.a1_Threshold
-                            var ddd = reader.GetString();
-                            if (!string.IsNullOrEmpty(ddd))
-                            {
-                                qrSt += $",v1";
-                                vaSt += $",'{Encoding.UTF8.GetString(a1Event)}:{ddd}'";
-                                reader.Read(); reader.Read(); reader.Read();
-                                var v2Title = reader.GetString();
-                                if (!string.IsNullOrEmpty(v2Title))
-                                {
-                                    reader.Read();
-                                    var v2Value = reader.GetString();
-                                    qrSt += $",v2 )";
-                                    vaSt += $",'{v2Title}:{v2Value}')";
-                                }
-                                else
-                                {
-                                    qrSt += $")";
-                                    vaSt += $")";
-                                }
-                                FullQuery += $"{qrSt} {vaSt};\n";
-                            }
-                            break;
-                        }
-                      
-                        if (reader.ValueTextEquals(a3Event)) //event3
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            var ddd = reader.GetString();
-                            qrSt += $",Event,v3 )";
-                            vaSt += $",'A3event','{Encoding.UTF8.GetString(a3Event)}:{ddd}')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(a4Event)) //event4
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            var ddd = reader.GetString();
-                            qrSt += $",Event,v4 )";
-                            vaSt += $",'A4event','{Encoding.UTF8.GetString(a4Event)}:{ddd}')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(cellupd)) //rrc.cellUpdate_element
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema                            
-                            qrSt += $",Event )";
-                            vaSt += $",'WCDMA RRC Cell Update')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(rbinfoTyp)) //rrc.rb_InformationReconfigList
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema                            
-                            var ddd = reader.GetString(); //value rrc.rb_InformationReconfigList
-                            qrSt += $",Event ,v1)";
-                            vaSt += $",'WCDMA RB Infoe','rrc.rb_InformationReconfigList:{ddd}')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(cellupdConf)) //rrc.cellUpdateConfirm_tree
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema                           
-                            qrSt += $",Event )";
-                            vaSt += $",'WCDMA RRC Cell Update Confirm')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(cqirpt)) //lte-rrc.cqi_ReportModeAperiodic
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            qrSt += $",Event";
-                            vaSt += $",'RRC CQI Report'";
-                            reader.Read();
-                            string rmqVal = reader.GetString();                            
-                            if(!string.IsNullOrEmpty(rmqVal))
-                            {
-                                qrSt += $",V1";
-                                vaSt += $",'{Encoding.UTF8.GetString(cqirpt)}:{rmqVal}'";
-                            }
-                            while(reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportPeriodic")))
-                            {
+                                // Assume valid JSON, known schema
                                 reader.Read();
+                                //var time = Convert.ToDouble(reader.GetString());
+                                //Tokendt = FromUnixTime((long)time);                               
+                                dd.Add("Tokendt", reader.GetString());                               
+                                break;
                             }
-                            reader.Read(); //value of lte-rrc.cqi_ReportPeriodic
-                            string rpcVal = reader.GetString();
-                            if (!string.IsNullOrEmpty(rpcVal))
-                            {                                
-                                qrSt += $",V2";
-                                vaSt += $",'lte-rrc.cqi_ReportPeriodic:{rpcVal}'";
-                            }
-                            while(reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_PUCCH_ResourceIndex")))
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.number")))
                             {
+                                // Assume valid JSON, known schema
                                 reader.Read();
+                                dd.Add("TokenNo", reader.GetString());
+                                break;
                             }
-                            reader.Read(); //value of lte-rrc.cqi_PUCCH_ResourceIndex
-                            string puccVal = reader.GetString();
-                            if (!string.IsNullOrEmpty(puccVal))
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold"))) //event1
                             {
-                                qrSt += $",V3";
-                                vaSt += $",'lte-rrc.cqi_PUCCH_ResourceIndex:{puccVal}'";
+                                var key = reader.GetString();
+                                reader.Read(); //value of lte-rrc.a1_Threshold                           
+                                dd.Add(key, reader.GetString());
+                                break;
                             }
-                            qrSt += $")";
-                            vaSt += $")";                            
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(trasMode)) //lte-rrc.transmissionMode
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            qrSt += $",Event";
-                            vaSt += $",'RRC Antenna Info'";
-                            reader.Read(); //value of lte-rrc.a1_Thresholdlte-rrc.transmissionMode
-                            var ddd = reader.GetString();
-                            if (!string.IsNullOrEmpty(ddd))
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event1,2
                             {
-                                qrSt += $",v1)";
-                                vaSt += $",'{Encoding.UTF8.GetString(trasMode)}:{ddd}')";                                                            
+                                var key = reader.GetString();
+                                reader.Read(); //value of lte-rrc.threshold_RSRQ                           
+                                dd.Add(key, reader.GetString());
+                                break;
                             }
-                            else
-                            {
-                                qrSt += $")";
-                                vaSt += $")";
-                            }
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(nasepsn)) //nas_eps.nas_msg_emm_type
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema                            
 
-                            reader.Read(); //get value of nas_eps.nas_msg_emm_type
-                            var ddd = reader.GetString();
-                            if(ddd=="0x48")
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold"))) //event2
                             {
-                                qrSt += $",Event)";
-                                vaSt += $",'Tracking area update request')"; FullQuery += $"{qrSt} {vaSt};\n";
+                                var key = reader.GetString();
+                                reader.Read(); //value of lte-rrc.a2_Threshold                           
+                                dd.Add(key, reader.GetString());
+                                break;
                             }
-                            if (ddd == "0x49")
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a3_Offset"))) //event3
                             {
-                                qrSt += $",Event)";
-                                vaSt += $",'Tracking area update accept')"; FullQuery += $"{qrSt} {vaSt};\n";
+                                var key = reader.GetString();
+                                reader.Read(); //value of lte-rrc.a3_Threshold                           
+                                dd.Add(key, reader.GetString());
+                                break;
                             }
-                            if (ddd == "0x4a")
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportOnLeave"))) //event3
                             {
-                                qrSt += $",Event)";
-                                vaSt += $",'Tracking area update complete')";FullQuery += $"{qrSt} {vaSt};\n";
-                            }                            
-                            break;
-                        }
-                        if (reader.ValueTextEquals(sCodecL1Event)) //Codec Bitmap for SysID 1 , Codec Bitmap for SysID 2
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            reader.Read();
-                            ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
-                            //رسیدن به شروع آبجکت 
-                            var dd = Encoding.UTF8.GetString(jsonElement); //JsonToken.StartObject for SysId1
-                            string v1Str = string.Empty;
-                            while (reader.TokenType != JsonTokenType.EndObject)
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventA4_element"))) //event4
+                            {
+                                var key = reader.GetString();
+                                dd.Add(key, "RRC event A4");
+                                break;
+                            }
+                            //event5
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold1")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold2")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold1_tree")))
                             {
                                 reader.Read();
-                                if (reader.TokenType != JsonTokenType.EndObject)
-                                {
-                                    var vvv = reader.GetString();
-                                    if (vvv.StartsWith("gsm_a"))
-                                    {
-                                        v1Str += vvv + ":";
-                                    }
-                                    else
-                                    {
-                                        v1Str += vvv + ",";
-                                    }
-                                }
-                            }
-                            reader.Read(); reader.Read(); reader.Read(); reader.Read(); reader.Read();
-                            string v2Str = string.Empty;
-                            if (reader.ValueTextEquals(sCodecL2Event))
-                            {
-                                reader.Read();
-                                ReadOnlySpan<byte> jsonElement2 = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
-                                //رسیدن به شروع آبجکت 
-                                var dd2 = Encoding.UTF8.GetString(jsonElement2); //JsonToken.StartObject for SysId2                                
+                                ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                string v1Str = string.Empty;
                                 while (reader.TokenType != JsonTokenType.EndObject)
                                 {
                                     reader.Read();
                                     if (reader.TokenType != JsonTokenType.EndObject)
                                     {
-                                        var vvv = reader.GetString();
-                                        if (vvv.StartsWith("gsm_a"))
+                                        if (reader.GetString().Equals("lte-rrc.threshold_RSRQ"))
                                         {
-                                            v2Str += vvv + ":";
-                                        }
-                                        else
-                                        {
-                                            v2Str += vvv + ",";
+                                            var key = "lte-rrc.a5_Threshold1_tree" + "." + reader.GetString();
+                                            reader.Read();
+                                            dd.Add(key, reader.GetString());
+                                            break;
                                         }
                                     }
                                 }
-                            }
-                            // Assume valid JSON, known schema
-                            if (!string.IsNullOrEmpty(v1Str))
-                            {
-                                qrSt += $",Event ,V1";
-                                vaSt += $",'WCDMA Supported Codec List','{v1Str}'";
-                            }
-                            if (!string.IsNullOrEmpty(v2Str))
-                            {
-                                qrSt += $",V2)";
-                                vaSt += $",'{v2Str}')";
-                            }
-                            else
-                            {
-                                qrSt += $")";
-                                vaSt += $")";
-                            }
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(crEvent)) //rrc.rrcConnectionRequest_element
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                          
-                            qrSt += $",Event )";
-                            vaSt += $",'RRC Connection Request')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(trEvent)) //lte-rrc.rrcConnectionRequest_element
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            
-                            qrSt += $",Event )";
-                            vaSt += $",'LTE RRC Connection Request')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(rccCsEvent)) //rrc.rrcConnectionSetup_r3_element
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                                                
-                            qrSt += $",Event )";
-                            vaSt += $",'RCC Connection Setup')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(lteRrcCons))
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";                            
-                            qrSt += $",Event ";
-                            vaSt += $",'LTE RRC Connection Setup'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            while (
-                                    reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxRetxThreshold"))
-                                    ||
-                                    reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxHARQ_Tx"))
-                                    ||
-                                    reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_ACK_Index"))
-                                    ||
-                                    reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_RI_Index"))
-                                    ||
-                                    reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_CQI_Index"))
-                                    ||
-                                    reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.allowedMeasBandwidth"))
-                                    )
-                            {
-                                qrSt += $",Event ";
-                                vaSt += $",'LTE RRC Connection Setup'";
-                            }
-                            //var ddd = reader.GetString();
 
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(cscEvent)) //rrc.rrcConnectionSetupComplete_element
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                           
-                            qrSt += $",Event )";
-                            vaSt += $",'RRC Connection Setup Complete')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(msgmmTyp))
-                        {
-                            //(DTAP) (MM) CM Service Request
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            var ddd = reader.GetString();
-                            if (ddd == "0x24")
-                            {
-                                qrSt += $",Event )";
-                                vaSt += $",'(DTAP) (MM) CM Service Request')";
-
-                                FullQuery += $"{qrSt} {vaSt};\n";
+                                break;
                             }
-                            break;
-                        }
-
-                        if (reader.ValueTextEquals(msgrrTyp))
-                        {
-                            //(DTAP) (RR) Immediate Assignment
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            var ddd = reader.GetString();
-                            if (ddd == "0x3f")
-                            {
-                                qrSt += $",Event ";
-                                vaSt += $",'(DTAP) (RR) Immediate Assignment'";
-                                //while (!reader.ValueTextEquals("gsm_a.rr.packet_channel_type") )
-                                //{
-                                //    reader.Read();                                    
-                                //    if(reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject)
-                                //    {
-                                //        reader.Read();
-                                //    }
-                                //}
-                                //var d = $"{{{reader.GetString()}:"; //gsm_a.rr.packet_channel_type key
-                                //reader.Read();
-                                //d += $"{reader.GetString()},"; //gsm_a.rr.packet_channel_type value
-                                //var V1alue = d;
-
-                                //while (!reader.ValueTextEquals("gsm_a.rr.timeslot"))
-                                //{
-                                //    reader.Read();
-                                //    if (reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.EndObject)
-                                //    {
-                                //        reader.Read();
-                                //    }
-                                //}                               
-                                //d += $"{reader.GetString()}:"; //gsm_a.rr.timeslot key
-                                //var V2alue = reader.GetString();
-                                //reader.Read();
-                                //d += $"{reader.GetString()}}}"; //gsm_a.rr.timeslot value
-                                //V2alue += $":{reader.GetString()}";
-
-                                //qrSt += ",v1,v2,v3";
-                                //vaSt += $",'{V1alue}','{V2alue}','{d}'";
-
-                                qrSt += ")";
-                                vaSt += ")";
-                                FullQuery += $"{qrSt} {vaSt};\n";
-                            }   
-                            break;
-                        }
-                        if (reader.ValueTextEquals(ddtEvent))
-                        {
-                            //DownlinkDirectTransfer(cs-domain)(DTAP) (CC) Disconnect,UplinkDirectTransfer(cs-domain)(DTAP) (CC) Alerting
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            var ddd = reader.GetString();
-                            switch (ddd)
-                            {
-                                case "0x25":
-                                    qrSt += $",Event )";
-                                    vaSt += $",'(CC) Disconnect')";
-                                    break;
-                                case "0x01":
-                                    qrSt += $",Event )";
-                                    vaSt += $",'(CC) Alerting')";
-                                    break;
-                                case "0x02":
-                                    qrSt += $",Event )";
-                                    vaSt += $",'(CC) Call Proceeding')";
-                                    break;
-                                case "0x05":
-                                    qrSt += $",Event )";
-                                    vaSt += $",'(CC) Setup')";
-                                    break;
-
-                                /*Call End*/
-                                case "0x2a":
-                                    qrSt += $",Event,V1 )";
-                                    reader.Read();
-                                    var getCause = reader.GetString();
-                                    vaSt += $",' (CC) Release Complete','{getCause}')";
-                                    break;
-                                /*Call End*/
-                                case "0x2d":
-                                    qrSt += $",Event )";
-                                    vaSt += $",'(CC) Release')";
-                                    break;                               
-                                /*Call End*/
-                                case "0x24":
-                                    qrSt += $",Event )";
-                                    vaSt += $",'(DTAP) (MM) CM Service Request')";
-                                    break;
-                            }
-
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(crrcEvent)) //RRC abnormal Connection Release and RRC Connection Release
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            var ddd = Convert.ToInt32(reader.GetString());
-                            if (ddd == 0)
-                            {
-                                qrSt += $",Event,V1 )";
-                                vaSt += $",'RRC Connection Release','rrc.releaseCause:{ddd}')";
-                            }
-                            else
-                            {
-                                qrSt += $",Event ,V1)";
-                                vaSt += $",'RRC abnormal Connection Release','rrc.releaseCause:{ddd}')";
-                            }
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(rrcRcEvent)) //rrc.releaseCause in rrc.rrcConnectionRelease_r3_element 
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            reader.Read();
-                            ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
-                            //رسیدن به شروع آبجکت 
-                            var dd = Encoding.UTF8.GetString(jsonElement); //JsonToken.StartObject for rrc.rrcConnectionRelease_r3_element 
-
-                            while (reader.TokenType != JsonTokenType.EndObject)
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold2_tree")))
                             {
                                 reader.Read();
-                                if (reader.ValueTextEquals("rrc.releaseCause"))
+                                ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                string v1Str = string.Empty;
+                                while (reader.TokenType != JsonTokenType.EndObject)
                                 {
                                     reader.Read();
-                                    var vvv = reader.GetString();
-                                    qrSt += ",V1";
-                                    vaSt += $",'rrc.releaseCause:{vvv}'";
-                                    break;
+                                    if (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        if (reader.GetString().Equals("lte-rrc.threshold_RSRQ"))
+                                        {
+                                            var key = "lte-rrc.a5_Threshold2_tree" + "." + reader.GetString();
+                                            reader.Read();
+                                            dd.Add(key, reader.GetString());
+                                            break;
+                                        }
+                                    }
                                 }
-                            } 
-                            qrSt += $")";
-                            vaSt += $")";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(lrrcvent)) //lte-rrc.releaseCause , LTE RRC Connection Release
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            reader.Read();
-                            var ddd = reader.GetString();
-                            qrSt += $",Event,V1 )";
-                            vaSt += $",'LTE RRC Connection Release','{Encoding.UTF8.GetString(lrrcvent)}:{ddd}')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }
-                        if (reader.ValueTextEquals(crcEvent)) //RRC Release Complete
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName,TokenNo,TokenTime";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}',{TokenNo},'{Tokendt}'";
-                            // Assume valid JSON, known schema
-                            //reader.Read();
-                            //var ddd = reader.GetString();
-                            qrSt += $",Event )";
-                            vaSt += $",'WCDMA RRC Release Complete')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                            break;
-                        }                       
-                        break;
+                                break;
+                            }
+                            //event 6 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a6_Offset_r10")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a6_ReportOnLeave_r10")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //LTE RRC Connection Setup
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxRetxThreshold")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxHARQ_Tx")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_ACK_Index")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_RI_Index")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_CQI_Index")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.allowedMeasBandwidth")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventB1_element"))) //lte-rrc.eventB1_element     
+                            {
+                                dd.Add(reader.GetString(), "RRC event B1-NR");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventB1-NR_element"))) //lte-rrc.eventB1-NR_element   
+                            {
+                                dd.Add(reader.GetString(), "RRC event B1");
+                                break;
+
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventB2_element"))) //lte-rrc.eventB2_element     
+                            {
+                                dd.Add(reader.GetString(), "RRC event B2");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventB2-NR_element"))) //lte-rrc.eventB2-NR_element   
+                            {
+                                dd.Add(reader.GetString(), "'RRC event B2-NR");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rb_InformationReconfigList"))) //rrc.rb_InformationReconfigList  
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.nas_Message"))) //rrc.nas_Message
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timing_adv"))) //gsm_a.rr.timing_adv
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.srb_ToAddModList"))) //lte-rrc.srb_ToAddModList
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("nas_eps.security_header_type"))) //nas_eps.security_header_type
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                if (ddd == "12")
+                                {
+                                    dd.Add(key, "LTE RRC SRB");
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.cellUpdate_element"))) //rrc.cellUpdate_element
+                            {
+                                dd.Add(reader.GetString(), "WCDMA RRC Cell Update");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rb_InformationReconfigList"))) //rrc.rb_InformationReconfigList
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.cellUpdateConfirm_tree"))) //rrc.cellUpdateConfirm_tree
+                            {
+                                dd.Add(reader.GetString(), "WCDMA RRC Cell Update Confirm");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportModeAperiodic"))) //lte-rrc.cqi_ReportModeAperiodic
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_PUCCH_ResourceIndex"))) //lte-rrc.cqi_PUCCH_ResourceIndex
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportPeriodic"))) //lte-rrc.cqi_ReportPeriodic
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.transmissionMode"))) //lte-rrc.transmissionMode
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("nas_eps.nas_msg_emm_type"))) //nas_eps.nas_msg_emm_type
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1"))) //Codec Bitmap for SysID 1 , Codec Bitmap for SysID 2
+                            {
+                                reader.Read();
+                                ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                string v1Str = string.Empty;
+                                while (reader.TokenType != JsonTokenType.EndObject)
+                                {
+                                    reader.Read();
+                                    if (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        var key = reader.GetString();
+                                        reader.Read();
+                                        var valuek = reader.GetString();
+                                        dd.Add(key, valuek);
+                                    }
+                                }
+                                reader.Read(); reader.Read(); reader.Read(); reader.Read(); reader.Read();
+                                string v2Str = string.Empty;
+                                if (reader.ValueTextEquals(sCodecL2Event))
+                                {
+                                    reader.Read();
+                                    ReadOnlySpan<byte> jsonElement2 = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                    //رسیدن به شروع آبجکت 
+                                    var dd2 = Encoding.UTF8.GetString(jsonElement2); //JsonToken.StartObject for SysId2                                
+                                    while (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        reader.Read();
+                                        if (reader.TokenType != JsonTokenType.EndObject)
+                                        {
+                                            var vvv = reader.GetString();
+                                            if (vvv.StartsWith("gsm_a"))
+                                            {
+                                                v2Str += vvv + ":";
+                                            }
+                                            else
+                                            {
+                                                v2Str += vvv + ",";
+                                            }
+                                        }
+                                    }
+                                }
+                                // Assume valid JSON, known schema
+                                if (!string.IsNullOrEmpty(v1Str))
+                                {
+                                    qrSt += $",Event ,V1";
+                                    vaSt += $",'WCDMA Supported Codec List','{v1Str}'";
+                                }
+                                if (!string.IsNullOrEmpty(v2Str))
+                                {
+                                    qrSt += $",V2)";
+                                    vaSt += $",'{v2Str}')";
+                                }
+                                else
+                                {
+                                    qrSt += $")";
+                                    vaSt += $")";
+                                }
+                                FullQuery += $"{qrSt} {vaSt};\n";
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionRequest_element"))) //rrc.rrcConnectionRequest_element
+                            {
+                                dd.Add(reader.GetString(), "RRC Connection Request");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.rrcConnectionRequest_element"))) //lte-rrc.rrcConnectionRequest_element
+                            {
+                                dd.Add(reader.GetString(), "LTE RRC Connection Request");
+                                break; ;
+
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionSetup_r3_element"))) //rrc.rrcConnectionSetup_r3_element
+                            {
+                                dd.Add(reader.GetString(), "RCC Connection Setup");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionSetupComplete_element"))) //rrc.rrcConnectionSetupComplete_element
+                            {
+                                dd.Add(reader.GetString(), "RRC Connection Setup Complete");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxRetxThreshold")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxHARQ_Tx")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_ACK_Index")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_RI_Index")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_CQI_Index")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_rr_type")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                if (ddd == "0x3f")
+                                {
+                                    dd.Add(key, "(DTAP) (RR) Immediate Assignment");
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.packet_channel_type")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timeslot")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //gsm_a.dtap→Measurement Results
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.rxlev_full_serv_cell")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.rxlev_sub_serv_cell")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.rxqual_full_serv_cell")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.rxqual_sub_serv_cell")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Dtx_used")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //RRC CQI SCC Report
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportAperiodic_r10")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportPeriodic_r10")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_PUCCH_ResourceIndex_r10")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_pmi_ConfigIndex")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //RRC CQI Report
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.cqi_ReportModeAperiodic")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_PUCCH_ResourceIndex")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_pmi_ConfigIndex")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.ri_ConfigIndex")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //RRC Event hystersis
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.hysteresis")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.timeToTrigger")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.triggerQuantity")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportQuantity")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportInterval")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportAmount")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.triggerType")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //LTE RRC Scell 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.antennaPortsCount")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.referenceSignalPower")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.transmissionMode_r10")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.ue_TransmitAntennaSelection")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.antennaPortsCount")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            //LTE RRC Antenna Info
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.transmissionmode")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.codebookSubsetRestriction")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.n2TxAntenna_tm4")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_cc_type")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                switch (ddd)
+                                {
+                                    case "0x25":
+                                        dd.Add(key, "(CC) Disconnect");
+                                        break;
+                                    case "0x01":
+                                        dd.Add(key, "(CC) Alerting");
+                                        break;
+                                    case "0x02":
+                                        dd.Add(key, "(CC) Call Proceeding");
+                                        break;
+                                    case "0x05":
+                                        dd.Add(key, "(CC) Setup");
+                                        break;
+
+                                    /*Call End*/
+                                    case "0x2a":
+                                        dd.Add(key, $"{ddd}");
+                                        break;
+                                    /*Call End*/
+                                    case "0x2d":
+                                        dd.Add(key, "(CC) Release");
+                                        break;
+                                    /*Call End*/
+                                    case "0x24":
+                                        dd.Add(key, "(DTAP) (MM) CM Service Request");
+                                        break;
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionReleaseComplete_element"))) //WCDMA RRC Release Complete
+                            {
+                                dd.Add(reader.GetString(), "WCDMA RRC Release Complete");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.releaseCause"))) //rrc.releaseCause in rrc.rrcConnectionRelease_r3_element 
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionRelease_tree"))) //rrc.rrcConnectionRelease_tree
+                            {
+                                dd.Add(reader.GetString(), "WCDMA RRC Connection Release");
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.releaseCause"))) //lte-rrc.releaseCause
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                dd.Add(key, reader.GetString());
+                                break;
+                            }
+                        }                     
+                       break;
                 }
-
-            }
-
-            //var ddd  =  JsonDocument.Parse(jsonString);
-            //var topic = ddd.RootElement.EnumerateArray();
-
-            //foreach (var item in topic)
-            //{
-            //  var source=  item.EnumerateObject().FirstOrDefault(it => it.Name.Contains("_source") && it.Value.ValueKind == JsonValueKind.Object).Value;
-            //  var layer = source.EnumerateObject().FirstOrDefault(it => it.Name.Contains("layers") && it.Value.ValueKind == JsonValueKind.Object).Value;
-            //    //   .Where(it => it.Value.ValueKind == JsonValueKind.Array && it.Name == "frame.time_epoch")
-            //    //.SelectMany(it => it.Value.EnumerateArray().Select(that => that.GetString()))
-            //}
-
-
-            // FullQuery = anotherMethod(TestId, FullQuery, jsonString);
-            // if (showQuery)
+            }           
             return FullQuery;
         }
 
-        private static string anotherMethod(string TestId, string FullQuery, string jsonString)
+        private static void setQuery(Dictionary<string, string> dd)
         {
-            var items = System.Text.Json.JsonSerializer.Deserialize<List<Pcap>>(jsonString);
-            foreach (var item in items)
+            foreach (var item in dd)
             {
-                string qrSt = string.Empty; string vaSt = string.Empty;
-                var time = Convert.ToDouble(item._source.layers.frame?.GetProperty("frame.time_epoch").ToString());
-                var Tokendt = FromUnixTime((long)time);
-                var TokenNo = item._source.layers.frame?.GetProperty("frame.number");
-
-                if (item._source.layers.lte_rrc != null)
-                {
-                    var lte_rrc = item._source.layers.lte_rrc.ul_dcch_msg_element;
-                    var cnteventA1 = lte_rrc.ToString().Contains("lte-rrc.eventA1_element");
-                    if (cnteventA1)
-                    {
-                        var v1 = lte_rrc.Value.GetProperty("lte-rrc.eventA1_element.lte-rrc.a1_Threshold").ToString();
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event ";
-                        vaSt += $",'A1event'";
-                        if (v1 != null)
-                        {
-                            qrSt += ",V1";
-                            vaSt += $",'{v1}'";
-                        }
-                        FullQuery += $"{qrSt}) {vaSt});\n";
-                    }
-                    var cnteventA2 = lte_rrc.ToString().Contains("lte-rrc.eventA2_element");
-                    if (cnteventA2)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event  ";
-                        vaSt += $",'A2event'";
-
-                        var dd = lte_rrc.Value.ToString().Contains("lte-rrc.a2_Threshold");
-                        var v2 = lte_rrc.Value.GetProperty("lte-rrc.a2_Threshold").ToString();
-                        if (v2 != null)
-                        {
-                            qrSt += ",V2";
-                            vaSt += $",'{v2}'";
-                        }
-                        FullQuery += $"{qrSt}) {vaSt});\n";
-                    }
-                    var cnteventA3 = lte_rrc.ToString().Contains("lte-rrc.eventA3_element");
-                    if (cnteventA3)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event ";
-                        vaSt += $",'A3event'";
-                        var v3 = lte_rrc.Value.GetProperty("lte-rrc.eventA3_element.lte-rrc.a2_Threshold").ToString();
-                        if (v3 != null)
-                        {
-                            qrSt += ",V3";
-                            vaSt += $",'{v3}'";
-                        }
-                        FullQuery += $"{qrSt}) {vaSt});\n";
-                    }
-                    var cnteventA4 = lte_rrc.ToString().Contains("lte-rrc.eventA4_element");
-                    if (cnteventA4)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event) ";
-                        vaSt += $",'A4event')";
-                        FullQuery += $"{qrSt} {vaSt};\n";
-                    }
-                    var cnteventA5 = lte_rrc.ToString().Contains("lte-rrc.eventA5_element");
-                    if (cnteventA5)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event) ";
-                        vaSt += $",'A5event')";
-                        FullQuery += $"{qrSt} {vaSt};\n";
-
-                    }
-                    var cnteventA6 = lte_rrc.ToString().Contains("lte-rrc.eventA6_element");
-                    if (cnteventA6)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event ) ";
-                        vaSt += $",'A6event')";
-                        FullQuery += $" {qrSt} {vaSt};\n";
-                    }
-                    var cnteventB1 = lte_rrc.ToString().Contains("lte-rrc.eventB1_element");
-                    if (cnteventB1)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event) ";
-                        vaSt += $",'B1event')";
-                        FullQuery += $"{qrSt} {vaSt};\n";
-                    }
-                    var cnteventNB1 = lte_rrc.ToString().Contains("lte-rrc.eventB1-NR_element");
-                    if (cnteventNB1)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event)";
-                        vaSt += $",'B1NRevent')";
-                        FullQuery += $"{qrSt} {vaSt};\n";
-                    }
-                    var cnteventB2 = lte_rrc.ToString().Contains("lte-rrc.eventB2_element");
-                    if (cnteventB2)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event) ";
-                        vaSt += $",'B2event')";
-                        FullQuery += $"{qrSt} {vaSt};\n";
-                    }
-                    var cnteventNB2 = lte_rrc.ToString().Contains("lte-rrc.eventB2-NR_element");
-                    if (cnteventNB2)
-                    {
-                        qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                        vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                        qrSt += $",Event) ";
-                        vaSt += $",'B2Nrevent')";
-                        FullQuery += $"{qrSt} {vaSt};\n";
-                    }
-                }
+                Console.WriteLine(item);
             }
-
-            return FullQuery;
-        }
-
-        private static string ExtractJsonFile(string filePath)
-        {
-            Console.WriteLine($"***********Read {Path.GetFileName(filePath)}*************");
-            var fileWExt = Path.GetFileNameWithoutExtension(filePath);
-            var TestId = fileWExt.Split("_")[1];
-            string FullQuery = string.Empty;
-            string json;
-            using (StreamReader r = new StreamReader(filePath))
-            {
-                json = r.ReadToEnd();
-                var rw = JArray.Parse(json);
-
-
-                var jsonData = rw.Children();
-                var jsonData2 = jsonData.Select(u => u != null && u.Type == JTokenType.Property);
-
-                List<JToken> tokens = jsonData.Children().Children().ToList();
-                foreach (var item in rw)
-                {
-                    bool showQuery = false;
-                    string qrSt = string.Empty; string vaSt = string.Empty;
-                    //var dd =  item.ToObject<Pcap>();                   
-                    var Frame = item.SelectTokens("_source.layers.frame").FirstOrDefault();
-                    var time = Convert.ToDouble(Frame["frame.time_epoch"].ToString());//Frame["frame.time"];
-                                                                                      //DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds((long)time);
-                    var Tokendt = FromUnixTime((long)time);
-                    var TokenNo = Frame["frame.number"];
-
-                    var ddddd = item.SelectTokens("_source.layers.frame").FirstOrDefault()["frame.protocols"].ToString();
-                    if (ddddd.Contains("lte_rrc"))
-                    {
-
-                        var lte_rrc = item.SelectToken("_source.layers.lte_rrc");
-
-                        var cnteventA1 = lte_rrc.ToString().Contains("lte-rrc.eventA1_element");
-                        if (cnteventA1)
-                        {
-                            var v1 = lte_rrc.SelectToken("lte-rrc.eventA1_element.lte-rrc.a1_Threshold");
-
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'A1event'";
-                            if (v1 != null)
-                            {
-                                qrSt += ",V1";
-                                vaSt += $",'{v1.Value<string>()}'";
-                            }
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                            // Console.WriteLine(lte_rrc);
-                            // Console.WriteLine(cnteventA1);
-                        }
-                        var cnteventA2 = lte_rrc.ToString().Contains("lte-rrc.eventA2_element");
-                        if (cnteventA2)
-                        {
-                            //foreach (var sourcePair in lte_rrc)
-                            //{
-                            //    if (sourcePair.Value<string>() == "eventA2_element")
-                            //    {
-                            //        var arole = "l";
-                            //    }
-                            //}
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event  ";
-                            vaSt += $",'A2event'";
-                            var v2 = lte_rrc.SelectToken("lte-rrc.DL_DCCH_Message_element.lte-rrc.eventA2_element.lte-rrc.a2_Threshold");
-                            if (v2 != null)
-                            {
-                                qrSt += ",V2";
-                                vaSt += $",'{v2.Value<string>()}'";
-                            }
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        var cnteventA3 = lte_rrc.ToString().Contains("lte-rrc.eventA3_element");
-                        if (cnteventA3)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'A3event'";
-                            var v3 = lte_rrc.SelectToken("lte-rrc.eventA3_element.lte-rrc.a2_Threshold");
-                            if (v3 != null)
-                            {
-                                qrSt += ",V3";
-                                vaSt += $",'{v3.Value<string>()}'";
-                            }
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        var cnteventA4 = lte_rrc.ToString().Contains("lte-rrc.eventA4_element");
-                        if (cnteventA4)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event) ";
-                            vaSt += $",'A4event')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                        }
-                        var cnteventA5 = lte_rrc.ToString().Contains("lte-rrc.eventA5_element");
-                        if (cnteventA5)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event) ";
-                            vaSt += $",'A5event')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-
-                        }
-                        var cnteventA6 = lte_rrc.ToString().Contains("lte-rrc.eventA6_element");
-                        if (cnteventA6)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ) ";
-                            vaSt += $",'A6event')";
-                            FullQuery += $" {qrSt} {vaSt};\n";
-                        }
-                        var cnteventB1 = lte_rrc.ToString().Contains("lte-rrc.eventB1_element");
-                        if (cnteventB1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event) ";
-                            vaSt += $",'B1event')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-
-                        }
-                        var cnteventNB1 = lte_rrc.ToString().Contains("lte-rrc.eventB1-NR_element");
-                        if (cnteventNB1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event)";
-                            vaSt += $",'B1NRevent')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-
-                        }
-                        var cnteventB2 = lte_rrc.ToString().Contains("lte-rrc.eventB2_element");
-                        if (cnteventB2)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event) ";
-                            vaSt += $",'B2event')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                        }
-                        var cnteventNB2 = lte_rrc.ToString().Contains("lte-rrc.eventB2-NR_element");
-                        if (cnteventNB2)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event) ";
-                            vaSt += $",'B2Nrevent')";
-                            FullQuery += $"{qrSt} {vaSt};\n";
-                        }
-                    }
-                    var rrcUL = item.SelectTokens("_source.layers.['rrc.UL_DCCH_Message_element']");
-                    if (rrcUL != null)
-                    {
-                        var cnteventA1 = rrcUL.Contains("rrc.rrcConnectionReleaseComplete_element");
-                        if (cnteventA1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'RRC Release Complete'";
-                            //if (v1 != null)
-                            //{
-                            //    qrSt += ",V1";
-                            //    vaSt += $",'{v1.Value<string>()}'";
-                            //}
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        cnteventA1 = rrcUL.Contains("rrc.rrcConnectionRelease_tree");
-                        if (cnteventA1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'RRC Normal Connection Release'";
-                            //if (v1 != null)
-                            //{
-                            //    qrSt += ",V1";
-                            //    vaSt += $",'{v1.Value<string>()}'";
-                            //}
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        cnteventA1 = rrcUL.Contains("gsm_a.dtap.msg_cc_type");
-                        if (cnteventA1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'DownlinkDirectTransfer(cs-domain)(DTAP) (CC) Disconnect'";
-                            //if (v1 != null)
-                            //{
-                            //    qrSt += ",V1";
-                            //    vaSt += $",'{v1.Value<string>()}'";
-                            //}
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        cnteventA1 = rrcUL.Contains("rrc.rrcConnectionSetupComplete_element");
-                        if (cnteventA1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'RRCConnectionSetupComplete(cs-domain)(ps-domain)'";
-                            //if (v1 != null)
-                            //{
-                            //    qrSt += ",V1";
-                            //    vaSt += $",'{v1.Value<string>()}'";
-                            //}
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        cnteventA1 = rrcUL.Contains("rrc.rrcConnectionSetup_r3_element");
-                        if (cnteventA1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'RRCConnectionSetup'";
-                            //if (v1 != null)
-                            //{
-                            //    qrSt += ",V1";
-                            //    vaSt += $",'{v1.Value<string>()}'";
-                            //}
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        cnteventA1 = rrcUL.Contains("rrc.rrcConnectionRequest_element");
-                        if (cnteventA1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'RRC Connection Request'";
-                            //if (v1 != null)
-                            //{
-                            //    qrSt += ",V1";
-                            //    vaSt += $",'{v1.Value<string>()}'";
-                            //}
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                        cnteventA1 = rrcUL.Contains("Codec Bitmap for SysID 1");
-                        if (cnteventA1)
-                        {
-                            showQuery = true;
-                            qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,TokenTime,TokenNo";
-                            vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{Tokendt}',{TokenNo}";
-                            qrSt += $",Event ";
-                            vaSt += $",'Supported Codec List'";
-                            //if (v1 != null)
-                            //{
-                            //    qrSt += ",V1";
-                            //    vaSt += $",'{v1.Value<string>()}'";
-                            //}
-                            FullQuery += $"{qrSt}) {vaSt});\n";
-                        }
-                    }
-
-                }
-            }
-            return FullQuery;
         }
 
         public static DateTime FromUnixTime(long unixTime)
@@ -1182,73 +825,6 @@ namespace ReadingCaptureFile
             return res;
         }
 
+
     }
 }
-public static class DatetTimeExtention
-{
-    public static DateTime FromUnixTime222(this long unixTime)
-    {
-        var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        return epoch.AddSeconds(unixTime);
-    }
-}
-public class Pcap
-{
-    public string _index { get; set; }
-    public string _type { get; set; }
-    public string _score { get; set; }
-    public Source _source { get; set; }
-}
-
-public class Source
-{
-    public Layer2 layers { get; set; }
-}
-public class Layer
-{
-    public JToken frame { get; set; }
-    public JToken ip { get; set; }
-    public JToken upd { get; set; }
-    public JToken gsmtap { get; set; }
-    public JToken lte_rrc { get; set; }
-
-    public JToken nas_eps { get; set; }
-    public JToken gsm_a_dtap { get; set; }
-
-    public Dictionary<string, JsonElement>? ExtensionData { get; set; }
-}
-public class Layer2
-{
-    public JsonElement? frame { get; set; }
-    public JsonElement? ip { get; set; }
-    public JsonElement? upd { get; set; }
-    public JsonElement? gsmtap { get; set; }
-    public LTErrc? lte_rrc { get; set; }
-
-    public JsonElement? nas_eps { get; set; }
-    public JsonElement? gsm_a_dtap { get; set; }
-    public Dictionary<string, JsonElement>? ExtensionData { get; set; }
-}
-
-public class LTErrc
-{
-    string lte_rrc { get; set; }
-    [System.Text.Json.Serialization.JsonPropertyName("lte-rrc.UL_DCCH_Message_element")]
-    public JsonElement? ul_dcch_msg_element { get; set; }
-}
-public static class JTokenExtention
-{
-    public static IEnumerable<T> SelectTokensWithRegex<T>(this JToken jsonReader, Regex regex)
-    {
-        Newtonsoft.Json.JsonSerializer serializer = new();
-        while (jsonReader.HasValues)
-        {
-            if (regex.IsMatch(jsonReader.Value<String>()))
-            {
-                yield return JsonConvert.DeserializeObject<T>(jsonReader.Path);
-            }
-        }
-    }
-
-}
-

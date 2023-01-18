@@ -3,3 +3,9 @@
 ################################################################################
 
 /ConsoleApp3/obj/Debug/net5.0
+/ConsoleApp3/obj
+/ConsoleApp3/bin/Debug/net5.0/ref
+/ConsoleApp3/bin/Debug/net5.0/runtimes
+/ConsoleApp3/bin/Debug/net5.0/ref
+
+/ConsoleApp3/ConsoleApp3.csproj.user
