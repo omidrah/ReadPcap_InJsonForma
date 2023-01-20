@@ -57,8 +57,7 @@ namespace ReadingCaptureFile
             var reader = new Utf8JsonReader(jsonReadOnlySpan);
             var OnecCheck = false;
             DateTime Tokendt = DateTime.Now;
-            byte[] sCodecL2Event = Encoding.UTF8.GetBytes("Codec Bitmap for SysID 2"); 
-            byte[] lteRrcCons = Encoding.UTF8.GetBytes("lte-rrc.rrcConnectionSetup_element");/*ناتمام*/
+            int itemcnt = 0; string parentKey = string.Empty;           
 
             Dictionary<string, string> dd = new Dictionary<string, string>(); ;
             while (reader.Read())
@@ -77,11 +76,13 @@ namespace ReadingCaptureFile
                     case JsonTokenType.PropertyName:
                         if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("_index")))
                         {                         
-                                if (dd.Count > 3)
+                                if (dd.Count > 2)
                                 {
                                     setQuery(dd, TestId, filename);
                                 }
-                                dd = new Dictionary<string, string>();                           
+                                dd = new Dictionary<string, string>();
+                                 itemcnt = 0;
+                            parentKey = string.Empty;
                             break;
                         }
                         else
@@ -102,199 +103,89 @@ namespace ReadingCaptureFile
                                 dd.Add("TokenNo", reader.GetString());
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold"))) //event1                            
-                            {
-                                var key = reader.GetString();
-                                reader.Read(); //value of lte-rrc.a1_Threshold                           
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold_tree")))
-                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event1
-                            {
-                                var key = reader.GetString();
-                                while (
-                                    (reader.TokenType == JsonTokenType.Null ||
-                                    reader.TokenType == JsonTokenType.StartObject ||
-                                    reader.TokenType == JsonTokenType.EndObject ||
-                                    reader.TokenType == JsonTokenType.EndArray ||
-                                    reader.TokenType == JsonTokenType.StartArray)
-                                    && !reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))
-                                    )
-                                {
-                                    reader.Read();                                    
-                                }
-                                key += "." + reader.GetString();
-                                reader.Read(); //value of lte-rrc.threshold_RSRQ                           
-                                dd.Add(key, reader.GetString());                                
-                                break;
-                            }
-
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold"))) //event2
-                            {
-                                var key = reader.GetString();
-                                reader.Read(); //value of lte-rrc.a2_Threshold                           
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold_tree")))
-                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event2
-                            {
-                                var key = reader.GetString();
-                                while (
-                                    (reader.TokenType == JsonTokenType.Null ||
-                                    reader.TokenType == JsonTokenType.StartObject ||
-                                    reader.TokenType == JsonTokenType.EndObject ||
-                                    reader.TokenType == JsonTokenType.EndArray ||
-                                    reader.TokenType == JsonTokenType.StartArray)
-                                    && !reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))
-                                    )
-                                {
-                                    reader.Read();
-                                }
-                                key += "." + reader.GetString();
-                                reader.Read(); //value of lte-rrc.threshold_RSRQ                           
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a3_Offset"))) //event3
-                            {
-                                var key = reader.GetString();
-                                reader.Read(); //value of lte-rrc.a3_Threshold                           
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportOnLeave"))) //event3
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventA4_element"))) //event4
-                            {
-                                var key = reader.GetString();
-                                dd.Add(key, "RRC event A4");
-                                break;
-                            }
-                            //event5
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold1")))
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold2")))
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold1_tree")))
-                            {
-                                reader.Read();
-                                ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
-                                string v1Str = string.Empty;
-                                while (reader.TokenType != JsonTokenType.EndObject)
-                                {
-                                    reader.Read();
-                                    if (reader.TokenType != JsonTokenType.EndObject)
-                                    {
-                                        if (reader.GetString().Equals("lte-rrc.threshold_RSRQ"))
-                                        {
-                                            var key = "lte-rrc.a5_Threshold1_tree" + "." + reader.GetString();
-                                            reader.Read();
-                                            dd.Add(key, reader.GetString());
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold2_tree")))
-                            {
-                                reader.Read();
-                                ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
-                                string v1Str = string.Empty;
-                                while (reader.TokenType != JsonTokenType.EndObject)
-                                {
-                                    reader.Read();
-                                    if (reader.TokenType != JsonTokenType.EndObject)
-                                    {
-                                        if (reader.GetString().Equals("lte-rrc.threshold_RSRQ"))
-                                        {
-                                            var key = "lte-rrc.a5_Threshold2_tree" + "." + reader.GetString();
-                                            reader.Read();
-                                            dd.Add(key, reader.GetString());
-                                            break;
-                                        }
-                                    }
-                                }
-                                break;
-                            }
-                            //event 6 
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a6_Offset_r10")))
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a6_ReportOnLeave_r10")))
-                            {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
-                                break;
-                            }
+                            
+                         
+                                                       
                             //LTE RRC Connection Setup
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.SRB_ToAddMod_element")))
+                            {
+                                parentKey = $"{reader.GetString()}.item {itemcnt}.";                               
+                                itemcnt++;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.DRB_ToAddMod_element")))
+                            {
+                                parentKey = $"{reader.GetString()}.item {itemcnt}.";
+                                itemcnt++;
+                            }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxRetxThreshold")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.maxHARQ_Tx")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_ACK_Index")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_RI_Index")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.betaOffset_CQI_Index")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
-                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.allowedMeasBandwidth")))
-                            //{
-                            //    var key = reader.GetString();
-                            //    reader.Read();
-                            //    dd.Add(key, reader.GetString());
-                            //    break;
-                            //}
-                            //
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.allowedMeasBandwidth")))
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+                            //end 
+
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.eventB1_element"))) //lte-rrc.eventB1_element     
                             {
                                 dd.Add(reader.GetString(), "RRC event B1-NR");
@@ -401,6 +292,7 @@ namespace ReadingCaptureFile
                                 dd.Add(reader.GetString(), "WCDMA RRC Cell Update Confirm");
                                 break;
                             }
+
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportModeAperiodic"))) //lte-rrc.cqi_ReportModeAperiodic
                             {
                                 var key = reader.GetString();
@@ -676,56 +568,331 @@ namespace ReadingCaptureFile
                                 dd.Add(key, reader.GetString());
                                 break;
                             }
-                            //RRC Event hystersis
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.hysteresis")))
+
+                            //this attribute mab by pardon
+                            if (reader.ValueTextEquals(Encoding.UTF32.GetBytes("lte-rrc.ReportConfigToAddMod_element")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    itemcnt = 0;
+                                }
+                                else
+                                {
+                                    itemcnt++;
+                                }
+                                parentKey = $"item {itemcnt}.{reader.GetString()}";
+
+                                //using var jsonTags = JsonDocument.ParseValue(ref reader);
+                                //var jsonTitle = jsonTags.RootElement.GetProperty("lte-rrc.triggerType");
+                            }
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.triggerType")))
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a3_Offset")))
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportOnLeave"))) //event3
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.hysteresis")))
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.timeToTrigger")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.triggerQuantity")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportQuantity")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportInterval")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportAmount")))
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.triggerType")))
+
+
+
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold"))) //event1                            
                             {
-                                var key = reader.GetString();
-                                reader.Read();
-                                dd.Add(key, reader.GetString());
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
                                 break;
                             }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold_tree")))
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event1
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    string val = string.Empty;
+                                    while (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        reader.Read();
+                                        if (reader.TokenType != JsonTokenType.EndObject && reader.TokenType != JsonTokenType.StartObject && reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ")))
+                                        {
+                                            val += reader.GetString();
+                                            break;
+                                        }
+                                    }
+                                    if (!string.IsNullOrEmpty(val))
+                                    {
+                                        key += $".{val}";
+                                        reader.Read();
+                                        dd.Add(key, reader.GetString());
+                                    }
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold"))) //event2
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a2_Threshold_tree")))
+                            //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ"))) //event2
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    string val = string.Empty;
+                                    while (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        reader.Read();
+                                        if (reader.TokenType != JsonTokenType.EndObject && reader.TokenType != JsonTokenType.StartObject && reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ")))
+                                        {
+                                            val += reader.GetString();
+                                            break;
+                                        }
+                                    }
+                                    if (!string.IsNullOrEmpty(val))
+                                    {
+                                        key += $".{val}";
+                                        reader.Read();
+                                        dd.Add(key, reader.GetString());
+                                    }
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold1")))
+                            {
+                               if(!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold2")))
+                            {
+                                if(!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold1_tree")))
+                            {
+                                //reader.Read();
+                                //ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                //string v1Str = string.Empty;
+                                //while (reader.TokenType != JsonTokenType.EndObject)
+                                //{
+                                //    reader.Read();
+                                //    if (reader.TokenType != JsonTokenType.EndObject)
+                                //    {
+                                //        if (reader.GetString().Equals("lte-rrc.threshold_RSRQ"))
+                                //        {
+                                //            var key = "lte-rrc.a5_Threshold1_tree" + "." + reader.GetString();
+                                //            reader.Read();
+                                //            dd.Add(key, reader.GetString());
+                                //            break;
+                                //        }
+                                //    }
+                                //}
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    string val = string.Empty;
+                                    while (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        reader.Read();
+                                        if (reader.TokenType != JsonTokenType.EndObject && reader.TokenType != JsonTokenType.StartObject && reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ")))
+                                        {
+                                            val += reader.GetString();
+                                            break;
+                                        }
+                                    }
+                                    if (!string.IsNullOrEmpty(val))
+                                    {
+                                        key += $".{val}";
+                                        reader.Read();
+                                        dd.Add(key, reader.GetString());
+                                    }
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold2_tree")))
+                            {
+                                //reader.Read();
+                                //ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
+                                //string v1Str = string.Empty;
+                                //while (reader.TokenType != JsonTokenType.EndObject)
+                                //{
+                                //    reader.Read();
+                                //    if (reader.TokenType != JsonTokenType.EndObject)
+                                //    {
+                                //        if (reader.GetString().Equals("lte-rrc.threshold_RSRQ"))
+                                //        {
+                                //            var key = "lte-rrc.a5_Threshold2_tree" + "." + reader.GetString();
+                                //            reader.Read();
+                                //            dd.Add(key, reader.GetString());
+                                //            break;
+                                //        }
+                                //    }
+                                //}
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    string val = string.Empty;
+                                    while (reader.TokenType != JsonTokenType.EndObject)
+                                    {
+                                        reader.Read();
+                                        if (reader.TokenType != JsonTokenType.EndObject && reader.TokenType != JsonTokenType.StartObject && reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.threshold_RSRQ")))
+                                        {
+                                            val += reader.GetString();
+                                            break;
+                                        }
+                                    }
+                                    if (!string.IsNullOrEmpty(val))
+                                    {
+                                        key += $".{val}";
+                                        reader.Read();
+                                        dd.Add(key, reader.GetString());
+                                    }
+                                }
+                                break;
+                            }
+                            //event 6 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a6_Offset_r10")))
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a6_ReportOnLeave_r10")))
+                            {
+                                if (!string.IsNullOrEmpty(parentKey))
+                                {
+                                    var key = $"{parentKey}{reader.GetString()}";
+                                    reader.Read();
+
+                                    dd.Add(key, reader.GetString());
+                                }
+                                break;
+                            }
+                          
+                       
                             //LTE RRC Scell 
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.antennaPortsCount")))
                             {
