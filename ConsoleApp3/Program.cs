@@ -1,8 +1,4 @@
-﻿
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Data;
@@ -11,16 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ReadingCaptureFile
 {
     public class Program
     {
         public static void Main(string[] args)
-        {          
+        {
             StringBuilder querystr = new StringBuilder();
             string outputFolder = "L3Mess/";
             var jsonDir = Directory.EnumerateFiles(outputFolder).Where(x => x.Contains(".json")).ToList();
@@ -57,7 +50,7 @@ namespace ReadingCaptureFile
             var reader = new Utf8JsonReader(jsonReadOnlySpan);
             var OnecCheck = false;
             DateTime Tokendt = DateTime.Now;
-            int itemcnt = 0; string parentKey = string.Empty; bool Set3f = false;          
+            int itemcnt = 0; string parentKey = string.Empty; bool Set3f = false;
 
             Dictionary<string, string> dd = new Dictionary<string, string>(); ;
             while (reader.Read())
@@ -66,35 +59,35 @@ namespace ReadingCaptureFile
                 JsonTokenType tokenType = reader.TokenType;
                 switch (tokenType)
                 {
-                    case JsonTokenType.StartObject:                        
+                    case JsonTokenType.StartObject:
                     case JsonTokenType.Null:
                     case JsonTokenType.EndObject:
                     case JsonTokenType.StartArray:
-                    case JsonTokenType.EndArray:                        
+                    case JsonTokenType.EndArray:
                         //reader.Read();
                         break;
                     case JsonTokenType.PropertyName:
                         if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("_index")))
-                        {                         
-                                if (dd.Count > 2)
-                                {
-                                    setQuery(dd, TestId, filename);
-                                }
-                                dd = new Dictionary<string, string>();
-                                 itemcnt = 0;
+                        {
+                            if (dd.Count > 2)
+                            {
+                                setQuery(dd, TestId, filename);
+                            }
+                            dd = new Dictionary<string, string>();
+                            itemcnt = 0;
                             parentKey = string.Empty;
                             Set3f = false;
                             break;
                         }
                         else
-                        {                           
+                        {
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.time_epoch")))
                             {
                                 // Assume valid JSON, known schema
                                 reader.Read();
                                 //var time = Convert.ToDouble(reader.GetString());
                                 //Tokendt = FromUnixTime((long)time);                               
-                                dd.Add("Tokendt", reader.GetString());                               
+                                dd.Add("Tokendt", reader.GetString());
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.number")))
@@ -104,14 +97,14 @@ namespace ReadingCaptureFile
                                 dd.Add("TokenNo", reader.GetString());
                                 break;
                             }
-                            
-                         
-                                                       
+
+
+
                             //LTE RRC Connection Setup
 
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.SRB_ToAddMod_element")))
                             {
-                                parentKey = $"{reader.GetString()}.item {itemcnt}.";                               
+                                parentKey = $"{reader.GetString()}.item {itemcnt}.";
                                 itemcnt++;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.DRB_ToAddMod_element")))
@@ -127,17 +120,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "LTE RRC Connection Setup"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "LTE RRC Connection Setup");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "LTE RRC Connection Setup";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -150,17 +145,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "LTE RRC Connection Setup"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "LTE RRC Connection Setup");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "LTE RRC Connection Setup";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -173,17 +170,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "LTE RRC Connection Setup"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "LTE RRC Connection Setup");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "LTE RRC Connection Setup";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -196,17 +195,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "LTE RRC Connection Setup"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "LTE RRC Connection Setup");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "LTE RRC Connection Setup";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -219,17 +220,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "LTE RRC Connection Setup"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "LTE RRC Connection Setup");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "LTE RRC Connection Setup";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -242,17 +245,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "LTE RRC Connection Setup"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "LTE RRC Connection Setup");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                       // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "LTE RRC Connection Setup";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -263,39 +268,39 @@ namespace ReadingCaptureFile
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rb_InformationReconfigList"))) //rrc.rb_InformationReconfigList  
                             {
                                 var key = "WCDMA RB Info";//EventName
-                                var parm = "\""+reader.GetString();
+                                var parm = "\"" + reader.GetString() + "\"";
                                 reader.Read();
-                                parm += $":{reader.GetString()}\"";
+                                parm += $":\"{reader.GetString()}\"";
                                 dd.Add(key, parm);
                                 break;
                             }
                             #endregion
 
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.nas_Message"))) 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.nas_Message")))
                             {
                                 var key = "NAS Message";//EventName
-                                var parm ="\"" +reader.GetString();
+                                var parm = "\"" + reader.GetString() + "\"";
                                 reader.Read();
-                                parm += $":{reader.GetString()}\"";
-                                dd.Add(key,parm);
+                                parm += $":\"{reader.GetString()}\"";
+                                dd.Add(key, parm);
                                 break;
                             }
-                            if(reader.ValueTextEquals(Encoding.UTF8.GetBytes("Timing Advance")))
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Timing Advance")))
                             //if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timing_adv"))) //gsm_a.rr.timing_adv
                             {
                                 bool ReadUnitl = false;
                                 while (!ReadUnitl)
                                 {
-                                    if (reader.TokenType == JsonTokenType.Null || 
-                                        reader.TokenType == JsonTokenType.StartObject || 
+                                    if (reader.TokenType == JsonTokenType.Null ||
+                                        reader.TokenType == JsonTokenType.StartObject ||
                                         reader.TokenType == JsonTokenType.EndObject ||
-                                        reader.TokenType == JsonTokenType.EndArray || 
+                                        reader.TokenType == JsonTokenType.EndArray ||
                                         reader.TokenType == JsonTokenType.StartArray)
                                     {
                                         reader.Read();
                                     }
                                     else
-                                    {                                       
+                                    {
                                         if (!reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.rr.timing_adv")))
                                         {
                                             reader.Read();
@@ -303,14 +308,14 @@ namespace ReadingCaptureFile
                                         else
                                         {
                                             var key1 = "Timing Advance";
-                                            var parm ="\""+reader.GetString();
+                                            var parm = "\"" + reader.GetString()+ "\"";
                                             reader.Read();
-                                            parm += $":{reader.GetString()}\"";
-                                            dd.Add(key1,parm);
+                                            parm += $":\"{reader.GetString()}\"";
+                                            dd.Add(key1, parm);
                                             ReadUnitl = true;
                                             break;
                                         }
-                                        
+
                                     }
                                 }
                                 //var key = reader.GetString();
@@ -321,21 +326,21 @@ namespace ReadingCaptureFile
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.srb_ToAddModList"))) //lte-rrc.srb_ToAddModList
                             {
                                 var key = "LTE RRC SRB";
-                                var parm = "\""+reader.GetString();
+                                var parm = "\"" + reader.GetString() + "\"";
                                 reader.Read();
-                                parm += $":{reader.GetString()}\"";
+                                parm += $":\"{reader.GetString()}\"";
                                 dd.Add(key, parm);
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("nas_eps.security_header_type"))) //nas_eps.security_header_type
                             {
                                 var key = "Service request";
-                                var parm ="\""+ reader.GetString();
-                                reader.Read();                                
+                                var parm = "\"" + reader.GetString() + "\"";
+                                reader.Read();
                                 var ddd = reader.GetString();
                                 if (ddd == "12")
                                 {
-                                    parm += $":{ddd}\"";
+                                    parm += $":\"{ddd}\"";
                                     dd.Add(key, parm);
                                 }
                                 break;
@@ -349,11 +354,11 @@ namespace ReadingCaptureFile
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rb_InformationReconfigList"))) //rrc.rb_InformationReconfigList
                             {
                                 var key = "WCDMA RB Info";
-                                var parm = "\""+ reader.GetString();
+                                var parm = "\"" + reader.GetString() + "\"";
                                 reader.Read();
-                                parm += $":{reader.GetString()}\"";
+                                parm += $":\"{reader.GetString()}\"";
                                 dd.Add(key, parm);
-                                break;                                
+                                break;
                             }
                             #endregion 
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.cellUpdateConfirm_tree")))
@@ -362,62 +367,68 @@ namespace ReadingCaptureFile
                                 break;
                             }
                             #region rrc cqi report
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.cqi_ReportModeAperiodic"))) 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.cqi_ReportModeAperiodic")))
                             {
                                 if (dd.Any(x => x.Key == "RRC CQI Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "RRC CQI Report";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportPeriodic"))) 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_ReportPeriodic")))
                             {
                                 if (dd.Any(x => x.Key == "RRC CQI Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "RRC CQI Report";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_PUCCH_ResourceIndex"))) 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.cqi_PUCCH_ResourceIndex")))
                             {
                                 if (dd.Any(x => x.Key == "RRC CQI Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "RRC CQI Report";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -427,17 +438,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "RRC CQI Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "RRC CQI Report";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -447,17 +460,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "RRC CQI Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "RRC CQI Report";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -486,11 +501,11 @@ namespace ReadingCaptureFile
                                     var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
                                     dd.Add(key, parm);
                                 }
-                                break;                               
+                                break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1"))) //Codec Bitmap for SysID 1
                             {
-                                var pitem = "\""+reader.GetString() + "\" :{";
+                                var pitem = "\"" + reader.GetString() + "\" :{";
                                 var chekcInobject = false;
                                 reader.Read();
                                 ReadOnlySpan<byte> jsonElement = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
@@ -635,17 +650,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "(DTAP) (RR) Immediate Assignment"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "(DTAP) (RR) Immediate Assignment");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + );
                                     }
                                     else
                                     {
                                         var key = "(DTAP) (RR) Immediate Assignment";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -658,17 +675,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "(DTAP) (RR) Immediate Assignment"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "(DTAP) (RR) Immediate Assignment");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + );
                                     }
                                     else
                                     {
                                         var key = "(DTAP) (RR) Immediate Assignment";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -681,17 +700,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "GSM Measurement Results"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "GSM Measurement Results");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                   // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "GSM Measurement Results";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -701,17 +722,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "GSM Measurement Results"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "GSM Measurement Results");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "GSM Measurement Results";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -721,17 +744,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "GSM Measurement Results"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "GSM Measurement Results");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "GSM Measurement Results";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -741,17 +766,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "GSM Measurement Results"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "GSM Measurement Results");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "GSM Measurement Results";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -761,17 +788,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "GSM Measurement Results"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "GSM Measurement Results");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "GSM Measurement Results";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -783,10 +812,12 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "RRC CQI SCC Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI SCC Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
@@ -803,10 +834,12 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "RRC CQI SCC Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI SCC Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
@@ -823,10 +856,12 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "RRC CQI SCC Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI SCC Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
@@ -843,10 +878,12 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "RRC CQI SCC Report"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "RRC CQI SCC Report");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
@@ -884,17 +921,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC Event hystersis"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC Event hystersis");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                       // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC Event hystersis";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -907,17 +946,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC Event hystersis"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC Event hystersis");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC Event hystersis";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -930,17 +971,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC Event hystersis"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC Event hystersis");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC Event hystersis";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -953,17 +996,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC Event hystersis"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC Event hystersis");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC Event hystersis";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -976,17 +1021,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC Event hystersis"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC Event hystersis");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC Event hystersis";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -999,17 +1046,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC Event hystersis"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC Event hystersis");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC Event hystersis";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1022,17 +1071,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC Event hystersis"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC Event hystersis");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC Event hystersis";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1041,28 +1092,30 @@ namespace ReadingCaptureFile
                             #endregion
 
                             #region Event1
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold")))                            
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a1_Threshold")))
                             {
                                 if (!string.IsNullOrEmpty(parentKey))
                                 {
 
-                                    if(dd.Any(x=>x.Key== "RRC event A1"))
+                                    if (dd.Any(x => x.Key == "RRC event A1"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A1");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A1";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
-                                    
+
                                 }
                                 break;
                             }
@@ -1087,18 +1140,20 @@ namespace ReadingCaptureFile
                                         if (dd.Any(x => x.Key == "RRC event A1"))
                                         {
                                             var exsitKey = dd.First(x => x.Key == "RRC event A1");
-                                            var itemparm= $",\"{pkey}.{val}";
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             //var parm = $",{parentKey}{reader.GetString()}";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";                                          
-                                            exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                            itemparm += $":\"{reader.GetString()}\"";
+                                            var newval = exsitKey.Value + "," + itemparm;
+                                            dd[exsitKey.Key] = newval;
+                                            //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                         }
                                         else
                                         {
                                             var key = "RRC event A1";
-                                            var itemparm = $"\"{pkey}.{val}";                                            
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";
+                                            itemparm += $":\"{reader.GetString()}\"";
                                             dd.Add(key, itemparm);
                                         }
                                     }
@@ -1114,17 +1169,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC event A2"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A2");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A2";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1151,18 +1208,20 @@ namespace ReadingCaptureFile
                                         if (dd.Any(x => x.Key == "RRC event A2"))
                                         {
                                             var exsitKey = dd.First(x => x.Key == "RRC event A2");
-                                            var itemparm = $",\"{pkey}.{val}";
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             //var parm = $",{parentKey}{reader.GetString()}";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";
-                                            exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                            itemparm += $":\"{reader.GetString()}\"";
+                                            var newval = exsitKey.Value + "," + itemparm;
+                                            dd[exsitKey.Key] = newval;
+                                           // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                         }
                                         else
                                         {
                                             var key = "RRC event A2";
-                                            var itemparm = $"\"{pkey}.{val}";
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";
+                                            itemparm += $":\"{reader.GetString()}\"";
                                             dd.Add(key, itemparm);
                                         }
                                     }
@@ -1178,17 +1237,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC event A3"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A3");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A3";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1201,17 +1262,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC event A3"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A3");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A3";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1221,22 +1284,24 @@ namespace ReadingCaptureFile
                             #region Event5
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.a5_Threshold1")))
                             {
-                               if(!string.IsNullOrEmpty(parentKey))
+                                if (!string.IsNullOrEmpty(parentKey))
                                 {
                                     if (dd.Any(x => x.Key == "RRC event A5"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A5");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                       //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A5";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1249,17 +1314,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC event A5"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A5");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A5";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1302,18 +1369,20 @@ namespace ReadingCaptureFile
                                         if (dd.Any(x => x.Key == "RRC event A5"))
                                         {
                                             var exsitKey = dd.First(x => x.Key == "RRC event A5");
-                                            var itemparm = $",\"{pkey}.{val}";
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             //var parm = $",{parentKey}{reader.GetString()}";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";
-                                            exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                            itemparm += $":\"{reader.GetString()}\"";
+                                            var newval = exsitKey.Value + "," + itemparm;
+                                            dd[exsitKey.Key] = newval;
+                                            //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                         }
                                         else
                                         {
                                             var key = "RRC event A5";
-                                            var itemparm = $"\"{pkey}.{val}";
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";
+                                            itemparm += $":\"{reader.GetString()}\"";
                                             dd.Add(key, itemparm);
                                         }
                                     }
@@ -1357,18 +1426,20 @@ namespace ReadingCaptureFile
                                         if (dd.Any(x => x.Key == "RRC event A5"))
                                         {
                                             var exsitKey = dd.First(x => x.Key == "RRC event A5");
-                                            var itemparm = $",\"{pkey}.{val}";
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             //var parm = $",{parentKey}{reader.GetString()}";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";
-                                            exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                            itemparm += $":\"{reader.GetString()}\"";
+                                            var newval = exsitKey.Value + "," + itemparm;
+                                            dd[exsitKey.Key] = newval;
+                                            //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                         }
                                         else
                                         {
                                             var key = "RRC event A5";
-                                            var itemparm = $"\"{pkey}.{val}";
+                                            var itemparm = $"\"{pkey}.{val}\"";
                                             reader.Read();
-                                            itemparm += $":{reader.GetString()}\"";
+                                            itemparm += $":\"{reader.GetString()}\"";
                                             dd.Add(key, itemparm);
                                         }
                                     }
@@ -1385,17 +1456,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC event A6"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A6");
-                                        var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A6";
-                                        var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}\"";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1408,17 +1481,19 @@ namespace ReadingCaptureFile
                                     if (dd.Any(x => x.Key == "RRC event A6"))
                                     {
                                         var exsitKey = dd.First(x => x.Key == "RRC event A6");
-                                        var itemparm = $",{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}";
-                                        exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                        itemparm += $":\"{reader.GetString()}\"";
+                                        var newval = exsitKey.Value + "," + itemparm;
+                                        dd[exsitKey.Key] = newval;
+                                        //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                     }
                                     else
                                     {
                                         var key = "RRC event A6";
-                                        var itemparm = $"{parentKey}{reader.GetString()}";
+                                        var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                         reader.Read();
-                                        itemparm += $":{reader.GetString()}";
+                                        itemparm += $":\"{reader.GetString()}\"";
                                         dd.Add(key, itemparm);
                                     }
                                 }
@@ -1447,23 +1522,25 @@ namespace ReadingCaptureFile
                                 break;
                             }
                             #endregion
-# region LTE RRC Scell 
+                            #region LTE RRC Scell 
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.antennaPortsCount")))
                             {
                                 if (dd.Any(x => x.Key == "LTE RRC Scell"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "LTE RRC Scell");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                   // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "LTE RRC Scell";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -1473,17 +1550,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "LTE RRC Scell"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "LTE RRC Scell");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "LTE RRC Scell";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -1493,17 +1572,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "LTE RRC Scell"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "LTE RRC Scell");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "LTE RRC Scell";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -1513,17 +1594,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "LTE RRC Scell"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "LTE RRC Scell");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "LTE RRC Scell";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -1535,17 +1618,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "LTE RRC Antenna Info"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "LTE RRC Antenna Info");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "LTE RRC Antenna Info";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -1555,17 +1640,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "LTE RRC Antenna Info"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "LTE RRC Antenna Info");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "LTE RRC Antenna Info";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -1575,17 +1662,19 @@ namespace ReadingCaptureFile
                                 if (dd.Any(x => x.Key == "LTE RRC Antenna Info"))
                                 {
                                     var exsitKey = dd.First(x => x.Key == "LTE RRC Antenna Info");
-                                    var itemparm = $",\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
-                                    exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
+                                    itemparm += $":\"{reader.GetString()}\"";
+                                    var newval = exsitKey.Value + "," + itemparm;
+                                    dd[exsitKey.Key] = newval;
+                                    //exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                 }
                                 else
                                 {
                                     var key = "LTE RRC Antenna Info";
-                                    var itemparm = $"\"{parentKey}{reader.GetString()}";
+                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                     reader.Read();
-                                    itemparm += $":{reader.GetString()}\"";
+                                    itemparm += $":\"{reader.GetString()}\"";
                                     dd.Add(key, itemparm);
                                 }
                                 break;
@@ -1599,7 +1688,7 @@ namespace ReadingCaptureFile
                                 switch (ddd)
                                 {
                                     case "0x25":
-                                        dd.Add("(CC) Disconnect",$"\"{key}:{ddd}\"");
+                                        dd.Add("(CC) Disconnect", $"\"{key}:{ddd}\"");
                                         break;
                                     case "0x01":
                                         dd.Add("(CC) Alerting", $"\"{key}:{ddd}\"");
@@ -1622,7 +1711,7 @@ namespace ReadingCaptureFile
                                 }
                                 break;
                             }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionReleaseComplete_element"))) 
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.rrcConnectionReleaseComplete_element")))
                             {
                                 dd.Add("WCDMA RRC Release Complete", $"\"{reader.GetString()}\"");
                                 break;
@@ -1630,34 +1719,34 @@ namespace ReadingCaptureFile
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("rrc.releaseCause")))
                             {
                                 var key = "WCDMA RRC Connection Release";
-                                var parm ="\"" +reader.GetString();
+                                var parm = "\"" + reader.GetString() + "\"";
                                 reader.Read();
-                                parm += $":{reader.GetString()}\"";
+                                parm += $":\"{reader.GetString()}\"";
                                 dd.Add(key, parm);
                                 break;
                             }
-                            
+
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.releaseCause")))
                             {
                                 var key = "LTE RRC Connection Release";
-                                var parm = "\"" + reader.GetString();
+                                var parm = "\"" + reader.GetString() + "\"";
                                 reader.Read();
-                                parm += $":{reader.GetString()}\n";
+                                parm += $":\"{reader.GetString()}\n";
                                 dd.Add(key, parm);
-                                break;  
+                                break;
                             }
-                        }                     
-                       break;
+                        }
+                        break;
                 }
-            }           
+            }
             return FullQuery;
         }
 
-        private static void setQuery(Dictionary<string, string> dd,string TestId,string filename)
+        private static void setQuery(Dictionary<string, string> dd, string TestId, string filename)
         {
 
             StringBuilder fullquery = new StringBuilder();
-            foreach (var item in dd.Where(x=>x.Key !="Tokendt" && x.Key !="TokenNo"))
+            foreach (var item in dd.Where(x => x.Key != "Tokendt" && x.Key != "TokenNo"))
             {
                 var qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName";
                 var vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}'";
@@ -1671,7 +1760,7 @@ namespace ReadingCaptureFile
 
                 qrSt += $",TokenNo"; vaSt += $",{tNo}";
                 qrSt += $",Event";
-                vaSt += $",'{item.Key}'";                
+                vaSt += $",'{item.Key}'";
                 qrSt += $",V1";
                 vaSt += $",'{{{item.Value}}}'";
                 qrSt += ")";
@@ -1680,9 +1769,10 @@ namespace ReadingCaptureFile
                 fullquery.Append($"{qrSt}{vaSt}\n");
 
             }
-            if (!string.IsNullOrEmpty(fullquery.ToString()))            {
+            if (!string.IsNullOrEmpty(fullquery.ToString()))
+            {
 
-                AdoCommand(fullquery.ToString());;
+                AdoCommand(fullquery.ToString()); ;
                 Console.WriteLine(fullquery.ToString());
             }
         }
