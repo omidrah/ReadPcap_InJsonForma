@@ -88,6 +88,7 @@ namespace ReadingCaptureFile
                                 //var time = Convert.ToDouble(reader.GetString());
                                 //Tokendt = FromUnixTime((long)time);                               
                                 dd.Add("Tokendt", reader.GetString());
+                             
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.number")))
@@ -478,29 +479,282 @@ namespace ReadingCaptureFile
                                 break;
                             }
                             #endregion
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("nas_eps.nas_msg_esm_type")))
+                            {
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                if (ddd == "0xc1")
+                                {
+                                    var key = "ESM Activate default EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc2")
+                                {
+                                    var key = "ESM Activate default EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc3")
+                                {
+                                    var key = "ESM Activate default EPS bearer context reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc5")
+                                {
+                                    var key = "ESM Activate dedicated EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc6")
+                                {
+                                    var key = "ESM Activate dedicated EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc7")
+                                {
+                                    var key = "ESM Activate dedicated EPS bearer context reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc9")
+                                {
+                                    var key = "ESM Modify EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xca")
+                                {
+                                    var key = "ESM Modify EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xcb")
+                                {
+                                    var key = "ESM Modify EPS bearer context reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xcd")
+                                {
+                                    var key = "ESM Deactivate EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xce")
+                                {
+                                    var key = "ESM Deactivate EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd0")
+                                {
+                                    var key = "ESM PDN connectivity request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd1")
+                                {
+                                    var key = "ESM PDN connectivity reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd2")
+                                {
+                                    var key = "ESM PDN disconnect request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd3")
+                                {
+                                    var key = "PDN disconnect reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd4")
+                                {
+                                    var key = "ESM Bearer resource allocation request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd5")
+                                {
+                                    var key = "ESM Bearer resource allocation reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd6")
+                                {
+                                    var key = "ESM Bearer resource modification request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd7")
+                                {
+                                    var key = "ESM Bearer resource modification reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd9")
+                                {
+                                    var key = "ESM information request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xda")
+                                {
+                                    var key = "ESM information response";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+
+                                break;
+                            }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("nas_eps.nas_msg_emm_type"))) //nas_eps.nas_msg_emm_type
                             {
                                 reader.Read();
                                 var ddd = reader.GetString();
+                                if (ddd == "0x41")
+                                {
+                                    var key = "EMM Attach request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x42")
+                                {
+                                    var key = "EMM Attach accept";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x43")
+                                {
+                                    var key = "EMM Attach complete";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x44")
+                                {
+                                    var key = "EMM Attach reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x45")
+                                {
+                                    var key = "EMM Detach request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x46")
+                                {
+                                    var key = "EMM Detach accept";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
                                 if (ddd == "0x48")
                                 {
-                                    var key = "Tracking area update request";
+                                    var key = "EMM Tracking area update request";
                                     var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
                                     dd.Add(key, parm);
                                 }
 
                                 if (ddd == "0x49")
                                 {
-                                    var key = "Tracking area update accept";
+                                    var key = "EMM Tracking area update accept";
                                     var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\""; ;
                                     dd.Add(key, parm);
                                 }
                                 if (ddd == "0x4a")
                                 {
-                                    var key = "Tracking area update complete";
+                                    var key = "EMM Tracking area update complete";
                                     var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
                                     dd.Add(key, parm);
                                 }
+                                if (ddd == "0x4b")
+                                {
+                                    var key = "EMM Tracking area update reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x4c")
+                                {
+                                    var key = "EMM Extended service request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x4e")
+                                {
+                                    var key = "EMM Service reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x50")
+                                {
+                                    var key = "EMM GUTI reallocation command";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x51")
+                                {
+                                    var key = "EMM GUTI reallocation complete";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x52")
+                                {
+                                    var key = "EMM Authentication request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x53")
+                                {
+                                    var key = "EMM Authentication response";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x54")
+                                {
+                                    var key = "EMM Authentication reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x55")
+                                {
+                                    var key = "EMM Identity request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x56")
+                                {
+                                    var key = "EMM Identity response";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5c")
+                                {
+                                    var key = "EMM Authentication failure";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5d")
+                                {
+                                    var key = "EMM Security mode command";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5e")
+                                {
+                                    var key = "EMM Security mode complete";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5f")
+                                {
+                                    var key = "EMM Security mode reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }                               
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1"))) //Codec Bitmap for SysID 1
@@ -1764,7 +2018,7 @@ namespace ReadingCaptureFile
                                     case "0x1a":
                                         dd.Add("CC Hold Reject", $"\"{key}:{ddd}\"");
                                         break;
-                                    case "0x10b":
+                                    case "0x1b":
                                         dd.Add("CC Recall", $"\"{key}:{ddd}\"");
                                         break;
                                     case "0x0e":
@@ -2032,10 +2286,10 @@ namespace ReadingCaptureFile
                 var qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName";
                 var vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}'";
                 /*DateTime Token*/
-                var dt = dd.FirstOrDefault(x => x.Key.Equals("Tokendt")).Value;
-                var time = Convert.ToDouble(dt);
-                var Tokendt = FromUnixTime((long)time);
-                qrSt += $",TokenTime"; vaSt += $",'{Tokendt}'";
+                var dt = dd.FirstOrDefault(x => x.Key.Equals("Tokendt")).Value;                
+                var Tokendt = FromUnixTime(dt);
+                //ToString("MM/dd/yyyy hh:mm:ss.fff tt") => Date and Time with Milliseconds
+                qrSt += $",TokenTime"; vaSt += $",'{Tokendt.ToString("MM/dd/yyyy hh:mm:ss.fff tt")}'";
                 /*Tonken Number*/
                 var tNo = dd.FirstOrDefault(x => x.Key.Equals("TokenNo")).Value;
 
@@ -2057,11 +2311,19 @@ namespace ReadingCaptureFile
                 Console.WriteLine(fullquery.ToString());
             }
         }
-
-        public static DateTime FromUnixTime(long unixTime)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="unixTime">unixTime is double</param>
+        /// <returns></returns>
+        public static DateTime FromUnixTime(string  unixTime) 
         {
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return epoch.AddSeconds(unixTime);
+            double.TryParse(unixTime, out double res);
+            DateTime dateTime2 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            //dateTime2 = dateTime2.AddSeconds(res);//incorrect 
+            /*برای بدست آوردن میکروثانیه ها  عدد دریافتی در 1000 ضرب شده و از تابع موردنظر استفاده شده است .*/
+            dateTime2 = dateTime2.AddMilliseconds(res * 1000).ToLocalTime();
+            return  dateTime2;
         }
         private static int AdoCommand(string testResult)
         {
