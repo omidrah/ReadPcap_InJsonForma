@@ -88,6 +88,7 @@ namespace ReadingCaptureFile
                                 //var time = Convert.ToDouble(reader.GetString());
                                 //Tokendt = FromUnixTime((long)time);                               
                                 dd.Add("Tokendt", reader.GetString());
+                             
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.number")))
@@ -478,29 +479,282 @@ namespace ReadingCaptureFile
                                 break;
                             }
                             #endregion
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("nas_eps.nas_msg_esm_type")))
+                            {
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                if (ddd == "0xc1")
+                                {
+                                    var key = "ESM Activate default EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc2")
+                                {
+                                    var key = "ESM Activate default EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc3")
+                                {
+                                    var key = "ESM Activate default EPS bearer context reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc5")
+                                {
+                                    var key = "ESM Activate dedicated EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc6")
+                                {
+                                    var key = "ESM Activate dedicated EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc7")
+                                {
+                                    var key = "ESM Activate dedicated EPS bearer context reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xc9")
+                                {
+                                    var key = "ESM Modify EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xca")
+                                {
+                                    var key = "ESM Modify EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xcb")
+                                {
+                                    var key = "ESM Modify EPS bearer context reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xcd")
+                                {
+                                    var key = "ESM Deactivate EPS bearer context request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xce")
+                                {
+                                    var key = "ESM Deactivate EPS bearer context accept";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd0")
+                                {
+                                    var key = "ESM PDN connectivity request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd1")
+                                {
+                                    var key = "ESM PDN connectivity reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd2")
+                                {
+                                    var key = "ESM PDN disconnect request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd3")
+                                {
+                                    var key = "PDN disconnect reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd4")
+                                {
+                                    var key = "ESM Bearer resource allocation request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd5")
+                                {
+                                    var key = "ESM Bearer resource allocation reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd6")
+                                {
+                                    var key = "ESM Bearer resource modification request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd7")
+                                {
+                                    var key = "ESM Bearer resource modification reject";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xd9")
+                                {
+                                    var key = "ESM information request";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0xda")
+                                {
+                                    var key = "ESM information response";
+                                    var parm = $"\"nas_eps.nas_msg_esm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+
+                                break;
+                            }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("nas_eps.nas_msg_emm_type"))) //nas_eps.nas_msg_emm_type
                             {
                                 reader.Read();
                                 var ddd = reader.GetString();
+                                if (ddd == "0x41")
+                                {
+                                    var key = "EMM Attach request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x42")
+                                {
+                                    var key = "EMM Attach accept";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x43")
+                                {
+                                    var key = "EMM Attach complete";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x44")
+                                {
+                                    var key = "EMM Attach reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x45")
+                                {
+                                    var key = "EMM Detach request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x46")
+                                {
+                                    var key = "EMM Detach accept";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
                                 if (ddd == "0x48")
                                 {
-                                    var key = "Tracking area update request";
+                                    var key = "EMM Tracking area update request";
                                     var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
                                     dd.Add(key, parm);
                                 }
 
                                 if (ddd == "0x49")
                                 {
-                                    var key = "Tracking area update accept";
+                                    var key = "EMM Tracking area update accept";
                                     var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\""; ;
                                     dd.Add(key, parm);
                                 }
                                 if (ddd == "0x4a")
                                 {
-                                    var key = "Tracking area update complete";
+                                    var key = "EMM Tracking area update complete";
                                     var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
                                     dd.Add(key, parm);
                                 }
+                                if (ddd == "0x4b")
+                                {
+                                    var key = "EMM Tracking area update reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x4c")
+                                {
+                                    var key = "EMM Extended service request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x4e")
+                                {
+                                    var key = "EMM Service reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x50")
+                                {
+                                    var key = "EMM GUTI reallocation command";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x51")
+                                {
+                                    var key = "EMM GUTI reallocation complete";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x52")
+                                {
+                                    var key = "EMM Authentication request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x53")
+                                {
+                                    var key = "EMM Authentication response";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x54")
+                                {
+                                    var key = "EMM Authentication reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x55")
+                                {
+                                    var key = "EMM Identity request";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x56")
+                                {
+                                    var key = "EMM Identity response";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5c")
+                                {
+                                    var key = "EMM Authentication failure";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5d")
+                                {
+                                    var key = "EMM Security mode command";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5e")
+                                {
+                                    var key = "EMM Security mode complete";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }
+                                if (ddd == "0x5f")
+                                {
+                                    var key = "EMM Security mode reject";
+                                    var parm = $"\"nas_eps.nas_msg_emm_type:{ddd}\"";
+                                    dd.Add(key, parm);
+                                }                               
                                 break;
                             }
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("Codec Bitmap for SysID 1"))) //Codec Bitmap for SysID 1
@@ -1680,6 +1934,7 @@ namespace ReadingCaptureFile
                                 break;
                             }
                             #endregion
+
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_cc_type")))
                             {
                                 var key = reader.GetString();
@@ -1687,26 +1942,305 @@ namespace ReadingCaptureFile
                                 var ddd = reader.GetString();
                                 switch (ddd)
                                 {
-                                    case "0x25":
-                                        dd.Add("(CC) Disconnect", $"\"{key}:{ddd}\"");
-                                        break;
+                                                                     
                                     case "0x01":
-                                        dd.Add("(CC) Alerting", $"\"{key}:{ddd}\"");
+                                        dd.Add("CC Alerting", $"\"{key}:{ddd}\"");
                                         break;
                                     case "0x02":
-                                        dd.Add("(CC) Call Proceeding", $"\"{key}:{ddd}\"");
+                                        dd.Add("CC Call Proceeding", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x03":
+                                        dd.Add("CC Progress", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x04":
+                                        dd.Add("CC Establishment", $"\"{key}:{ddd}\"");
                                         break;
                                     case "0x05":
-                                        dd.Add("(CC) Setup", $"\"{key}:{ddd}\"");
+                                        dd.Add("CC Setup", $"\"{key}:{ddd}\"");
                                         break;
-                                    case "0x2a":
-                                        dd.Add("(CC) Release Complete", $"\"{key}:{ddd}\"");
+                                    case "0x06":
+                                        dd.Add("CC Establishment Confirmed", $"\"{key}:{ddd}\"");
                                         break;
-                                    case "0x2d":
-                                        dd.Add("(CC) Release", $"\"{key}:{ddd}\"");
+                                    case "0x07":
+                                        dd.Add("CC Call Connect", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x08":
+                                        dd.Add("CC Call Confirmed", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x09":
+                                        dd.Add("CC Start", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x10":
+                                        dd.Add("CC User Information", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x13":
+                                        dd.Add("CC Modify Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x17":
+                                        dd.Add("CC Modify", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x18":
+                                        dd.Add("CC Hold", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x19":
+                                        dd.Add("CC Hold Acknowledge", $"\"{key}:{ddd}\"");
                                         break;
                                     case "0x24":
                                         dd.Add("(DTAP) (MM) CM Service Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x25":
+                                        dd.Add("CC Disconnect", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x39":
+                                        dd.Add("CC Congestion Control", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x1f":
+                                        dd.Add("CC Modify Complete", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x2a":
+                                        dd.Add("CC Release Complete", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x2d":
+                                        dd.Add("CC Release", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x3d":
+                                        dd.Add("CC Notify", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x1e":
+                                        dd.Add("CC Retrieve Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x1d":
+                                        dd.Add("CC Retrieve Acknowledge", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x1c":
+                                        dd.Add("CC Retrieve", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x1a":
+                                        dd.Add("CC Hold Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x1b":
+                                        dd.Add("CC Recall", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x0e":
+                                        dd.Add("CC Emergency Setup", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x0f":
+                                        dd.Add("CC Connect Acknowledge", $"\"{key}:{ddd}\"");
+                                        break;                                   
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_sm_type")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                switch (ddd)
+                                {
+
+                                    case "0x5c":
+                                        dd.Add("SM Request Secondary PDP Context Activation Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x5b":
+                                        dd.Add("SM Request Secondary PDP Context Activation", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x5a":
+                                        dd.Add("SM Request MBMS Context Activation Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x56":
+                                        dd.Add("SM Activate MBMS Context Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x57":
+                                        dd.Add("SM Activate MBMS Context Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x58":
+                                        dd.Add("SM Activate MBMS Context Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x59":
+                                        dd.Add("SM Request MBMS Context Activation", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x4f":
+                                        dd.Add("SM Activate Secondary PDP Context Reject", $"\"{key}:{ddd}\"");
+                                        break;                                    
+                                    case "0x4e":
+                                        dd.Add("SM Activate Secondary PDP Context Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x4d":
+                                        dd.Add("SM Activate Secondary PDP Context Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x4c":
+                                        dd.Add("SM Modify PDP Context Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x4b":
+                                        dd.Add("SM Modify PDP Context Accept (Network to MS direction)", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x4a":
+                                        dd.Add("SM Modify PDP Context Request(MS to network direction)", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x49":
+                                        dd.Add("SM Modify PDP Context Accept (MS to network direction)", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x48":
+                                        dd.Add("SM Modify PDP Context Request(Network to MS direction)", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x47":
+                                        dd.Add("SM Deactivate PDP Context Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x46":
+                                        dd.Add("SM Deactivate PDP Context Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x45":
+                                        dd.Add("SM Request PDP Context Activation rej.", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x44":
+                                        dd.Add("SM Request PDP Context Activation", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x43":
+                                        dd.Add("SM Activate PDP Context Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x42":
+                                        dd.Add("SM Activate PDP Context Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x41":
+                                        dd.Add("SM Activate PDP Context Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_ss_type")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                switch (ddd)
+                                {
+                                    case "0x2a":
+                                        dd.Add("SS Release Complete", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x3b":
+                                        dd.Add("SS Register", $"\"{key}:{ddd}\"");
+                                        break;                                   
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_mm_type")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                switch (ddd)
+                                {
+
+                                    case "0x29":
+                                        dd.Add("MM Abort", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x28":
+                                        dd.Add("MM CM Re-establishment Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x25":
+                                        dd.Add("MM CM Service Prompt", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x24":
+                                        dd.Add("MM CM Service Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x23":
+                                        dd.Add("MM CM Service Abort", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x22":
+                                        dd.Add("MM CM Service Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x21":
+                                        dd.Add("MM CM Service Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x19":
+                                        dd.Add("MM Identity Response", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x18":
+                                        dd.Add("MM Identity Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x1c":
+                                        dd.Add("MM Authentication Failure", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x14":
+                                        dd.Add("MM Authentication Response", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x12":
+                                        dd.Add("MM Authentication Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x11":
+                                        dd.Add("MM Authentication Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x08":
+                                        dd.Add("MM Location Updating Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x04":
+                                        dd.Add("MM Location Updating Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x02":
+                                        dd.Add("MM Location Updating Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                   
+                                }
+                                break;
+                            }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_gmm_type")))
+                            {
+                                var key = reader.GetString();
+                                reader.Read();
+                                var ddd = reader.GetString();
+                                switch (ddd)
+                                {
+
+                                    case "0x1c":
+                                        dd.Add("GMM Authentication and Ciphering Failure", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x14":
+                                        dd.Add("GMM Authentication and Ciphering Rej", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x13":
+                                        dd.Add("GMM Authentication and Ciphering Resp", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x12":
+                                        dd.Add("GMM Authentication and Ciphering Req", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x0e":
+                                        dd.Add("GMM Service Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x0d":
+                                        dd.Add("GMM Service Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x0c":
+                                        dd.Add("GMM Service Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x0b":
+                                        dd.Add("GMM Routing Area Update Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x0a":
+                                        dd.Add("GMM Routing Area Update Complete", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x09":
+                                        dd.Add("GMM Routing Area Update Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x08":
+                                        dd.Add("GMM Routing Area Update Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x06":
+                                        dd.Add("GMM Detach Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x05":
+                                        dd.Add("GMM Detach Request", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x04":
+                                        dd.Add("GMM Attach Reject", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x03":
+                                        dd.Add("GMM Attach Complete", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x02":
+                                        dd.Add("GMM Attach Accept", $"\"{key}:{ddd}\"");
+                                        break;
+                                    case "0x01":
+                                        dd.Add("GMM Attach Request", $"\"{key}:{ddd}\"");
                                         break;
                                 }
                                 break;
@@ -1735,6 +2269,7 @@ namespace ReadingCaptureFile
                                 dd.Add(key, parm);
                                 break;
                             }
+
                         }
                         break;
                 }
@@ -1751,10 +2286,10 @@ namespace ReadingCaptureFile
                 var qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName";
                 var vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}'";
                 /*DateTime Token*/
-                var dt = dd.FirstOrDefault(x => x.Key.Equals("Tokendt")).Value;
-                var time = Convert.ToDouble(dt);
-                var Tokendt = FromUnixTime((long)time);
-                qrSt += $",TokenTime"; vaSt += $",'{Tokendt}'";
+                var dt = dd.FirstOrDefault(x => x.Key.Equals("Tokendt")).Value;                
+                var Tokendt = FromUnixTime(dt);
+                //ToString("MM/dd/yyyy hh:mm:ss.fff tt") => Date and Time with Milliseconds
+                qrSt += $",TokenTime"; vaSt += $",'{Tokendt.ToString("MM/dd/yyyy hh:mm:ss.fff tt")}'";
                 /*Tonken Number*/
                 var tNo = dd.FirstOrDefault(x => x.Key.Equals("TokenNo")).Value;
 
@@ -1776,11 +2311,19 @@ namespace ReadingCaptureFile
                 Console.WriteLine(fullquery.ToString());
             }
         }
-
-        public static DateTime FromUnixTime(long unixTime)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="unixTime">unixTime is double</param>
+        /// <returns></returns>
+        public static DateTime FromUnixTime(string  unixTime) 
         {
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return epoch.AddSeconds(unixTime);
+            double.TryParse(unixTime, out double res);
+            DateTime dateTime2 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            //dateTime2 = dateTime2.AddSeconds(res);//incorrect 
+            /*برای بدست آوردن میکروثانیه ها  عدد دریافتی در 1000 ضرب شده و از تابع موردنظر استفاده شده است .*/
+            dateTime2 = dateTime2.AddMilliseconds(res * 1000).ToLocalTime();
+            return  dateTime2;
         }
         private static int AdoCommand(string testResult)
         {

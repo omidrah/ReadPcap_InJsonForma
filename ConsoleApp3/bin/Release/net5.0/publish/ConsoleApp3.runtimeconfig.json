@@ -4,6 +4,12 @@
     "framework": {
       "name": "Microsoft.NETCore.App",
       "version": "5.0.0"
+<<<<<<< HEAD
+=======
+    },
+    "configProperties": {
+      "System.Reflection.Metadata.MetadataUpdater.IsSupported": false
+>>>>>>> 67c98d85b2f8d3285f55a6a9186f62e435e80a16
     }
   }
 }
