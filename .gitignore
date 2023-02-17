@@ -1,7 +1,7 @@
 ﻿################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
-
+/ConsoleApp3/bin
 /ConsoleApp3/obj/Debug/net5.0
 /ConsoleApp3/obj
 /ConsoleApp3/bin/Debug/net5.0/ref

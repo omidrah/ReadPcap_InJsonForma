@@ -1,24 +1,28 @@
 {
   "format": 1,
   "restore": {
-    "D:\\source\\repos\\L3Mess\\New folder\\ReadPcap_InJsonForma\\ConsoleApp3\\ConsoleApp3.csproj": {}
+    "E:\\Project\\Kkom\\L3Message\\ReadJson_Pcap\\ConsoleApp3\\ConsoleApp3.csproj": {}
   },
   "projects": {
-    "D:\\source\\repos\\L3Mess\\New folder\\ReadPcap_InJsonForma\\ConsoleApp3\\ConsoleApp3.csproj": {
+    "E:\\Project\\Kkom\\L3Message\\ReadJson_Pcap\\ConsoleApp3\\ConsoleApp3.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\source\\repos\\L3Mess\\New folder\\ReadPcap_InJsonForma\\ConsoleApp3\\ConsoleApp3.csproj",
+        "projectUniqueName": "E:\\Project\\Kkom\\L3Message\\ReadJson_Pcap\\ConsoleApp3\\ConsoleApp3.csproj",
         "projectName": "ConsoleApp3",
-        "projectPath": "D:\\source\\repos\\L3Mess\\New folder\\ReadPcap_InJsonForma\\ConsoleApp3\\ConsoleApp3.csproj",
-        "packagesPath": "C:\\Users\\rahimi.KCRNT\\.nuget\\packages\\",
-        "outputPath": "D:\\source\\repos\\L3Mess\\New folder\\ReadPcap_InJsonForma\\ConsoleApp3\\obj\\",
+        "projectPath": "E:\\Project\\Kkom\\L3Message\\ReadJson_Pcap\\ConsoleApp3\\ConsoleApp3.csproj",
+        "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
+        "outputPath": "E:\\Project\\Kkom\\L3Message\\ReadJson_Pcap\\ConsoleApp3\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\",
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\rahimi.KCRNT\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\user\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net5.0"
@@ -67,7 +71,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.300\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.401\\RuntimeIdentifierGraph.json"
         }
       }
     }
