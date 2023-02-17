@@ -1613,7 +1613,7 @@ namespace ReadingCaptureFile
                             }
                             #endregion
                             #region  LTE RRC Antenna Info
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.transmissionmode")))
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.transmissionMode")))
                             {
                                 if (dd.Any(x => x.Key == "LTE RRC Antenna Info"))
                                 {
@@ -1656,8 +1656,8 @@ namespace ReadingCaptureFile
                                     dd.Add(key, itemparm);
                                 }
                                 break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.n2TxAntenna_tm4")))
+                            }                            
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.n4TxAntenna_tm4")))
                             {
                                 if (dd.Any(x => x.Key == "LTE RRC Antenna Info"))
                                 {
