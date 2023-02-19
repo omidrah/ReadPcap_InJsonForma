@@ -853,6 +853,11 @@ namespace ReadingCaptureFile
                                 dd.Add("RRC Connection Setup Complete", $"\"{reader.GetString()}\"");
                                 break;
                             }
+                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.rrcConnectionSetupComplete_element"))) //lte-rrc.rrcConnectionSetupComplete_element
+                            {
+                                dd.Add("LTE RRC Connection Setup Complete", $"\"{reader.GetString()}\"");
+                                break;
+                            }
 
                             #region (DTAP)(RR)Immediate Assignment
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("gsm_a.dtap.msg_rr_type")))
