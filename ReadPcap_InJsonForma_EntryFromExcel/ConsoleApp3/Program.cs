@@ -53,7 +53,7 @@ namespace ReadingCaptureFile
             DateTime Tokendt = DateTime.Now;
             int itemcnt = 0; string parentKey = string.Empty; bool Set3f = false;
             /*ReadKey from excel */
-            string path = "D:/sample_data.xlsx";
+            string path = "sample_data.xlsx";
             FileInfo fileInfo = new FileInfo(path);
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial; //for ignore check licence
 
@@ -64,7 +64,7 @@ namespace ReadingCaptureFile
             int rows = worksheet.Dimension.Rows; // 20
             int columns = worksheet.Dimension.Columns; // 3
             
-            Dictionary<string, string> dd = new Dictionary<string, string>(); ;
+            Dictionary<string, string> dd = new(); 
             while (reader.Read())
             {
                 string qrSt = string.Empty; string vaSt = string.Empty;
@@ -76,8 +76,12 @@ namespace ReadingCaptureFile
                     case JsonTokenType.EndObject:
                     case JsonTokenType.StartArray:
                     case JsonTokenType.EndArray:
-                        //reader.Read();
+                    //  parentKey = string.Empty;
                         break;
+                    //case JsonTokenType.EndObject:                    
+                    //case JsonTokenType.EndArray:
+                    //    parentKey = string.Empty;
+                    //    break;
                     case JsonTokenType.PropertyName:
                         if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("_index")))
                         {
@@ -92,8 +96,7 @@ namespace ReadingCaptureFile
                             break;
                         }
                         else
-                        {
-
+                        {                          
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.time_epoch")))
                             {
                                 // Assume valid JSON, known schema
@@ -101,9 +104,8 @@ namespace ReadingCaptureFile
                                 //var time = Convert.ToDouble(reader.GetString());
                                 //Tokendt = FromUnixTime((long)time);                               
                                 dd.Add("Tokendt", reader.GetString());
-
                                 break;
-                            }
+                            }                            
                             if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.number")))
                             {
                                 // Assume valid JSON, known schema
@@ -170,8 +172,7 @@ namespace ReadingCaptureFile
                                                     // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
                                                 }
                                                 else
-                                                {
-                                                   
+                                                {                                                   
                                                     var itemparm = $"\"{parentKey}{reader.GetString()}\"";
                                                     reader.Read();
                                                     itemparm += $":\"{reader.GetString()}\"";
@@ -203,9 +204,14 @@ namespace ReadingCaptureFile
                                                 }
                                            }
                                         }
-                                    }
-                                    /* Do something ...*/
-                                    // }
+                                    }                                    
+                                    //else
+                                    //{
+                                        
+                                    //        parentKey = reader.GetString() + ">";
+                                    //        itemcnt++;
+                                     
+                                    //}
                                 }
                             }
                         }

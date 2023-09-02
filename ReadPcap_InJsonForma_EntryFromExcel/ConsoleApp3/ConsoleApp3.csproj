@@ -10,7 +10,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
   </ItemGroup>
-
+	<Content Include="sample_data.xlsx">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
  
 
 </Project>
