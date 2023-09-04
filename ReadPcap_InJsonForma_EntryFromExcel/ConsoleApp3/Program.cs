@@ -2,15 +2,12 @@
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 
 namespace ReadingCaptureFile
 {
@@ -34,7 +31,12 @@ namespace ReadingCaptureFile
                 Console.WriteLine(querystr.ToString());
             }
         }
-        
+        /// <summary>
+        /// یک فایل جیسون دریافت شده و براساس کلیدهایی که در فایل اکسل
+        /// تعریف می شود این کلیدها در فایل وروردی چک میشود
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public static string ExtractJsonFileByJSonSerializer(string filePath)
         {
             var filename = Path.GetFileName(filePath);
@@ -42,7 +44,7 @@ namespace ReadingCaptureFile
             var TestId = fileWExt.Split("_")[1];
             string FullQuery = string.Empty;
             IList<object> result = null;
-            string jsonString = File.ReadAllText(filePath);//.Replace("\n","").Replace("\r","");            
+            string jsonString = File.ReadAllText(filePath);         
             /*ReadKey from excel */
             string path = "sample_data.xlsx"; //فایل اکسلی که کلیدهایی که میخواهیم در فایل ورودی چک کنم داخل آن قرار داده شده است
             FileInfo fileInfo = new(path);
@@ -52,8 +54,8 @@ namespace ReadingCaptureFile
             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
 
             // get number of rows and columns in the sheet
-            int rows = worksheet.Dimension.Rows; // 20
-            int columns = worksheet.Dimension.Columns; // 3
+            int rows = worksheet.Dimension.Rows; // ex.20
+            int columns = worksheet.Dimension.Columns; // ex.3
             Dictionary<Guid, dicItems> dd = new();
 
             using (StreamReader streamReader = new StreamReader(filePath))
@@ -70,8 +72,7 @@ namespace ReadingCaptureFile
             {
                 var ss = Newtonsoft.Json.Linq.JObject.Parse(tt.ToString());                
                 var tokenNO = ss.Descendants().OfType<JProperty>().Where(x => x.Name =="frame.number").FirstOrDefault().Value.ToString();
-                var tokenDT = ss.Descendants().OfType<JProperty>().Where(x => x.Name == "frame.time_epoch").FirstOrDefault().Value.ToString();
-                    //tt.ToString().FirstOrDefault(t => t.ToString() == "frame.time_epoch").ToString();
+                var tokenDT = ss.Descendants().OfType<JProperty>().Where(x => x.Name == "frame.time_epoch").FirstOrDefault().Value.ToString();                    
                 for (int i = 2; i <= rows; i++)  //i=1 is header
                 {
                     var k_onSheet = worksheet.Cells[i, 3].Value?.ToString(); //ستون کلید در اکسل
@@ -121,9 +122,8 @@ namespace ReadingCaptureFile
                                 //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
                             });
                         }
-                    }
-                   
-                    
+                    }                  
+                    //fill dictionary
                     if (selectItem.Count() > 0)
                     {
                         if (!string.IsNullOrEmpty(v_onSheet))
