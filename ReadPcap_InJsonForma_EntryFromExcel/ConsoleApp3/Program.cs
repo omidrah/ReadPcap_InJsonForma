@@ -19,7 +19,7 @@ namespace ReadingCaptureFile
         public static void Main(string[] args)
         {
             StringBuilder querystr = new StringBuilder();
-            string outputFolder = "L3Mess/";
+            string outputFolder = "L3Mess/"; //مسیر فایل های ورودی
             var jsonDir = Directory.EnumerateFiles(outputFolder).Where(x => x.Contains(".json")).ToList();
             foreach (var jsonFile in jsonDir)
             {
@@ -44,7 +44,7 @@ namespace ReadingCaptureFile
             IList<object> result = null;
             string jsonString = File.ReadAllText(filePath);//.Replace("\n","").Replace("\r","");            
             /*ReadKey from excel */
-            string path = "sample_data.xlsx";
+            string path = "sample_data.xlsx"; //فایل اکسلی که کلیدهایی که میخواهیم در فایل ورودی چک کنم داخل آن قرار داده شده است
             FileInfo fileInfo = new(path);
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial; //for ignore check licence
 
@@ -74,10 +74,10 @@ namespace ReadingCaptureFile
                     //tt.ToString().FirstOrDefault(t => t.ToString() == "frame.time_epoch").ToString();
                 for (int i = 2; i <= rows; i++)  //i=1 is header
                 {
-                    var k_onSheet = worksheet.Cells[i, 3].Value?.ToString();
-                    var v_onSheet = worksheet.Cells[i, 4].Value?.ToString();
-                    var need_readValue = worksheet.Cells[i, 5].Value?.ToString(); //1 mean value of this key should be read
-                    var EventName = $"{worksheet.Cells[i, 1].Value}";
+                    var k_onSheet = worksheet.Cells[i, 3].Value?.ToString(); //ستون کلید در اکسل
+                    var v_onSheet = worksheet.Cells[i, 4].Value?.ToString();//ستون مقدار در اکسل
+                    var need_readValue = worksheet.Cells[i, 5].Value?.ToString(); //1 mean value of this key should be read //ستونReadValue
+                    var EventName = $"{worksheet.Cells[i, 1].Value}"; //ستون نام ایونت در جدول در اکسل
                     var nu = ss.Descendants().OfType<JProperty>().Where(x => x.Name == k_onSheet);
                     IEnumerable<Item> selectItem = null;
                     if (!string.IsNullOrEmpty(v_onSheet))
