@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -75,61 +76,91 @@ namespace ReadingCaptureFile
                 {
                     var k_onSheet = worksheet.Cells[i, 3].Value?.ToString();
                     var v_onSheet = worksheet.Cells[i, 4].Value?.ToString();
+                    var need_readValue = worksheet.Cells[i, 5].Value?.ToString(); //1 mean value of this key should be read
                     var EventName = $"{worksheet.Cells[i, 1].Value}";
+                    var nu = ss.Descendants().OfType<JProperty>().Where(x => x.Name == k_onSheet);
+                    IEnumerable<Item> selectItem = null;
                     if (!string.IsNullOrEmpty(v_onSheet))
                     {
-                        var nuuuu = ss.Descendants().OfType<JProperty>().
-                        Where(x => x.Name == k_onSheet).Select(x => new
+                        selectItem = nu.Select(x =>
                         {
-                            Name = x.Name.ToString(),
-                            Value = x.HasValues ? string.Empty : x.Value,
-                            Path = x.Path.Replace("']['", ".").Replace("']", ".").Replace("['", ".")
-                              //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
-                        }).ToList();
-                        if (nuuuu.Count > 0)
-                        {
-                            nuuuu.ForEach((it) =>
-                            {
-                                if (it.Value.ToString() == v_onSheet)
-                                {
-                                    dd.Add(Guid.NewGuid(), new dicItems
-                                    {
-                                        Parent = it.Path,
-                                        TokenNo = int.Parse(tokenNO),
-                                        Tokendt = tokenDT,
-                                        Value = it.Name + " : " + it.Value.ToString(),
-                                        Key = EventName
-                                    });
-                                }
-                            });
-                        }
+                            return
+                             new Item
+                             {
+                                 Name = x.Name.ToString(),
+                                 Value = x.HasValues ? x.Value.ToString() : string.Empty,
+                                 Path = x.Path.Replace("']['", ".").Replace("']", ".").Replace("['", ".")
+                                 //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
+                             };
+                        });                    
                     }
                     else
                     {
-                        var nuuuu = ss.Descendants().OfType<JProperty>().
-                        Where(x => x.Name == k_onSheet).Select(x => new
+                        if (!string.IsNullOrEmpty(need_readValue) && int.TryParse(need_readValue,out int kkk))
                         {
-                            Name = x.Name.ToString(),
-                            //Value = x.HasValues ? x.Value: string.Empty,
-                            Value= string.Empty,
-                            Path = x.Path.Replace("']['", ".").Replace("']", ".").Replace("['", ".")
-                            //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
-                        }).ToList();
-                        if (nuuuu.Count > 0)
-                        {
-                            nuuuu.ForEach((it) =>
+                            if (kkk == 1)
                             {
-                                dd.Add(Guid.NewGuid(), new dicItems
-                                    {
-                                        Parent = it.Path,
-                                        TokenNo = int.Parse(tokenNO),
-                                        Tokendt = tokenDT,
-                                        Value = string.IsNullOrEmpty(it.Value)? it.Name : it.Name + " : " + it.Value.ToString(),
-                                        Key = EventName
-                                    });                                
+                                selectItem = nu.Select(x => new Item
+                                {
+                                    Name = x.Name.ToString(),
+                                    //Value = x.HasValues ? x.Value: string.Empty,
+                                    Value = x.HasValues ? x.Value.ToString() : string.Empty,
+                                    Path = x.Path.Replace("']['", ".").Replace("']", ".").Replace("['", ".").Replace("\'", "\''")
+                                    //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
+                                });
+                            }
+                        }
+                        else
+                        {
+                            selectItem = nu.Select(x => new Item
+                            {
+                                Name = x.Name.ToString(),
+                                //Value = x.HasValues ? x.Value: string.Empty,
+                                Value = string.Empty,
+                                Path = x.Path.Replace("']['", ".").Replace("']", ".").Replace("['", ".").Replace("\'", "\''")
+                                //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
                             });
                         }
                     }
+                   
+                    
+                    if (selectItem.Count() > 0)
+                    {
+                        if (!string.IsNullOrEmpty(v_onSheet))
+                        {
+                            selectItem.ToList().ForEach((it) =>
+                                {
+                                    if (it.Value.ToString() == v_onSheet && it.Name==k_onSheet ) 
+                                    {
+                                        dd.Add(Guid.NewGuid(), new dicItems
+                                        {
+                                            Parent = it.Path,
+                                            TokenNo = int.Parse(tokenNO),
+                                            Tokendt = tokenDT,
+                                            Value = it.Name + " : " + it.Value.ToString(),
+                                            Key = EventName
+                                        });
+                                     }
+                                });
+                        }
+                        else
+                        {
+                            selectItem.ToList().ForEach((it) =>
+                            {
+                                dd.Add(Guid.NewGuid(), new dicItems
+                                {
+                                    Parent = it.Path,
+                                    TokenNo = int.Parse(tokenNO),
+                                    Tokendt = tokenDT,
+                                    Value = string.IsNullOrEmpty(it.Value.ToString()) ? it.Name :it.Name + " : " + it.Value.ToString(),
+                                    Key = EventName
+                                });
+                            });
+                        }
+
+
+                    }
+
                 }
             }          
             if (dd.Count > 2) 
@@ -225,5 +256,12 @@ namespace ReadingCaptureFile
         public string Key { get; set; }
         public string Value { get; set; }
         public string Parent { get; set; }
+    }
+
+    public class Item
+    {        
+        public string Name { get; set; }
+        public string Value { get; set; }
+        public string Path { get; set; }
     }
 }
