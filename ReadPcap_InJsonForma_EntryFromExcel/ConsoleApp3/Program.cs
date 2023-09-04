@@ -1,4 +1,6 @@
-﻿using OfficeOpenXml;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OfficeOpenXml;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -31,221 +33,131 @@ namespace ReadingCaptureFile
                 Console.WriteLine(querystr.ToString());
             }
         }
-        private static ReadOnlySpan<byte> Utf8Bom => new byte[] { 0xEF, 0xBB, 0xBF };
+        
         public static string ExtractJsonFileByJSonSerializer(string filePath)
         {
             var filename = Path.GetFileName(filePath);
             var fileWExt = Path.GetFileNameWithoutExtension(filePath);
             var TestId = fileWExt.Split("_")[1];
             string FullQuery = string.Empty;
-            string jsonString = File.ReadAllText(filePath);//.Replace("\n","").Replace("\r","");
-
-
-            ReadOnlySpan<byte> jsonReadOnlySpan = File.ReadAllBytes(filePath);
-
-            // Read past the UTF-8 BOM bytes if a BOM exists.
-            if (jsonReadOnlySpan.StartsWith(Utf8Bom))
-            {
-                jsonReadOnlySpan = jsonReadOnlySpan.Slice(Utf8Bom.Length);
-            }
-            var reader = new Utf8JsonReader(jsonReadOnlySpan);
-            var OnecCheck = false;
-            DateTime Tokendt = DateTime.Now;
-            int itemcnt = 0; string parentKey = string.Empty; bool Set3f = false;
+            IList<object> result = null;
+            string jsonString = File.ReadAllText(filePath);//.Replace("\n","").Replace("\r","");            
             /*ReadKey from excel */
             string path = "sample_data.xlsx";
-            FileInfo fileInfo = new FileInfo(path);
+            FileInfo fileInfo = new(path);
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial; //for ignore check licence
 
-            ExcelPackage package = new ExcelPackage(fileInfo);            
+            ExcelPackage package = new(fileInfo);            
             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
 
             // get number of rows and columns in the sheet
             int rows = worksheet.Dimension.Rows; // 20
             int columns = worksheet.Dimension.Columns; // 3
-            
-            Dictionary<string, string> dd = new(); 
-            while (reader.Read())
+            Dictionary<Guid, dicItems> dd = new();
+
+            using (StreamReader streamReader = new StreamReader(filePath))
             {
-                string qrSt = string.Empty; string vaSt = string.Empty;
-                JsonTokenType tokenType = reader.TokenType;
-                switch (tokenType)
+                using (JsonReader reader1 = new JsonTextReader(streamReader))
                 {
-                    case JsonTokenType.StartObject:
-                    case JsonTokenType.Null:
-                    case JsonTokenType.EndObject:
-                    case JsonTokenType.StartArray:
-                    case JsonTokenType.EndArray:
-                    //  parentKey = string.Empty;
-                        break;
-                    //case JsonTokenType.EndObject:                    
-                    //case JsonTokenType.EndArray:
-                    //    parentKey = string.Empty;
-                    //    break;
-                    case JsonTokenType.PropertyName:
-                        if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("_index")))
-                        {
-                            if (dd.Count > 2)
-                            {
-                                setQuery(dd, TestId, filename);
-                            }
-                            dd = new Dictionary<string, string>();
-                            itemcnt = 0;
-                            parentKey = string.Empty;
-                            Set3f = false;
-                            break;
-                        }
-                        else
-                        {                          
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.time_epoch")))
-                            {
-                                // Assume valid JSON, known schema
-                                reader.Read();
-                                //var time = Convert.ToDouble(reader.GetString());
-                                //Tokendt = FromUnixTime((long)time);                               
-                                dd.Add("Tokendt", reader.GetString());
-                                break;
-                            }                            
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("frame.number")))
-                            {
-                                // Assume valid JSON, known schema
-                                reader.Read();
-                                dd.Add("TokenNo", reader.GetString());
-                                break;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.reportConfigToAddModList")))
-                            {
-                                parentKey = $"{reader.GetString()}.item {itemcnt}.";
-                                itemcnt++;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.SRB_ToAddMod_element")))
-                            {
-                                parentKey = $"{reader.GetString()}.item {itemcnt}.";
-                                itemcnt++;
-                            }
-                            if (reader.ValueTextEquals(Encoding.UTF8.GetBytes("lte-rrc.DRB_ToAddMod_element")))
-                            {
-                                parentKey = $"{reader.GetString()}.item {itemcnt}.";
-                                itemcnt++;
-                            }
-                            //this attribute mab by pardon
-                            if (reader.ValueTextEquals(Encoding.UTF32.GetBytes("lte-rrc.ReportConfigToAddMod_element")))
-                            {
-                                if (!string.IsNullOrEmpty(parentKey))
-                                {
-                                    itemcnt = 0;
-                                }
-                                else
-                                {
-                                    itemcnt++;
-                                }
-                                parentKey = $"item {itemcnt}.{reader.GetString()}";
-
-                                //using var jsonTags = JsonDocument.ParseValue(ref reader);
-                                //var jsonTitle = jsonTags.RootElement.GetProperty("lte-rrc.triggerType");
-                            }
-                            else
-                            {
-                                // loop through the worksheet rows and columns
-                                for (int i = 2; i <= rows; i++)  //i=1 is header
-                                {
-                                    //for (int j = 1; j <= columns; j++) //col1=Value1,col2=EventName in Table,col3=Event alias
-                                    //{
-                                    //    string content = worksheet.Cells[i, j].Value.ToString();
-                                    var k_onSheet = worksheet.Cells[i, 1].Value?.ToString();
-                                    var v_onSheet = worksheet.Cells[i, 2].Value?.ToString();
-                                    if (!string.IsNullOrEmpty(k_onSheet))
-                                    {
-                                        if (reader.ValueTextEquals(Encoding.UTF8.GetBytes(k_onSheet)))
-                                        {
-                                            if (!string.IsNullOrEmpty(parentKey))
-                                            {
-                                                var EventName = $"{worksheet.Cells[i, 3].Value}";
-                                                if (dd.Any(x => x.Key == EventName))
-                                                {
-                                                    var exsitKey = dd.First(x => x.Key == EventName);
-                                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
-                                                    reader.Read();
-                                                    itemparm += $":\"{reader.GetString()}\"";
-                                                    var newval = exsitKey.Value + "," + itemparm;
-                                                    dd[exsitKey.Key] = newval;
-                                                    // exsitKey.Value.Replace(exsitKey.Value, exsitKey.Value + itemparm);
-                                                }
-                                                else
-                                                {                                                   
-                                                    var itemparm = $"\"{parentKey}{reader.GetString()}\"";
-                                                    reader.Read();
-                                                    itemparm += $":\"{reader.GetString()}\"";
-                                                    dd.Add(EventName, itemparm);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (!string.IsNullOrEmpty(v_onSheet)) //has value.need check value
-                                                {
-
-                                                    var EventName = $"{worksheet.Cells[i, 3].Value}";
-                                                    var parm = "\"" + reader.GetString() + "\""; //value of key on json file
-                                                    reader.Read();  //go to next token
-                                                    var valueOnFile = reader.GetString(); //value of next token on json file
-                                                    if (v_onSheet == valueOnFile)
-                                                    {
-                                                        parm += $":\"{reader.GetString()}\"";
-                                                        dd.Add(EventName, parm);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    var EventName = $"{worksheet.Cells[i, 3].Value}";
-                                                    var parm = "\"" + reader.GetString() + "\"";
-                                                    reader.Read();
-                                                    parm += $":\"{reader.GetString()}\"";
-                                                    dd.Add(EventName, parm);
-                                                }
-                                           }
-                                        }
-                                    }                                    
-                                    //else
-                                    //{
-                                        
-                                    //        parentKey = reader.GetString() + ">";
-                                    //        itemcnt++;
-                                     
-                                    //}
-                                }
-                            }
-                        }
-                        break;
+                    Newtonsoft.Json.JsonSerializer serializer = new();
+                    // read the json from a stream
+                    // json size doesn't matter because only a small piece is read at a time from the HTTP request
+                    result = serializer.Deserialize<List<object>>(reader1);
                 }
-            }
-            if (dd.Count > 2) //for last token.
+            }   
+            foreach (var tt in result)
+            {
+                var ss = Newtonsoft.Json.Linq.JObject.Parse(tt.ToString());                
+                var tokenNO = ss.Descendants().OfType<JProperty>().Where(x => x.Name =="frame.number").FirstOrDefault().Value.ToString();
+                var tokenDT = ss.Descendants().OfType<JProperty>().Where(x => x.Name == "frame.time_epoch").FirstOrDefault().Value.ToString();
+                    //tt.ToString().FirstOrDefault(t => t.ToString() == "frame.time_epoch").ToString();
+                for (int i = 2; i <= rows; i++)  //i=1 is header
+                {
+                    var k_onSheet = worksheet.Cells[i, 3].Value?.ToString();
+                    var v_onSheet = worksheet.Cells[i, 4].Value?.ToString();
+                    var EventName = $"{worksheet.Cells[i, 1].Value}";
+                    if (!string.IsNullOrEmpty(v_onSheet))
+                    {
+                        var nuuuu = ss.Descendants().OfType<JProperty>().
+                        Where(x => x.Name == k_onSheet).Select(x => new
+                        {
+                            Name = x.Name.ToString(),
+                            Value = x.HasValues ? string.Empty : x.Value,
+                            Path = x.Path.Replace("']['", ".").Replace("']", ".").Replace("['", ".")
+                              //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
+                        }).ToList();
+                        if (nuuuu.Count > 0)
+                        {
+                            nuuuu.ForEach((it) =>
+                            {
+                                if (it.Value.ToString() == v_onSheet)
+                                {
+                                    dd.Add(Guid.NewGuid(), new dicItems
+                                    {
+                                        Parent = it.Path,
+                                        TokenNo = int.Parse(tokenNO),
+                                        Tokendt = tokenDT,
+                                        Value = it.Name + " : " + it.Value.ToString(),
+                                        Key = EventName
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    else
+                    {
+                        var nuuuu = ss.Descendants().OfType<JProperty>().
+                        Where(x => x.Name == k_onSheet).Select(x => new
+                        {
+                            Name = x.Name.ToString(),
+                            //Value = x.HasValues ? x.Value: string.Empty,
+                            Value= string.Empty,
+                            Path = x.Path.Replace("']['", ".").Replace("']", ".").Replace("['", ".")
+                            //x.Ancestors().OfType<JProperty>().FirstOrDefault().Name
+                        }).ToList();
+                        if (nuuuu.Count > 0)
+                        {
+                            nuuuu.ForEach((it) =>
+                            {
+                                dd.Add(Guid.NewGuid(), new dicItems
+                                    {
+                                        Parent = it.Path,
+                                        TokenNo = int.Parse(tokenNO),
+                                        Tokendt = tokenDT,
+                                        Value = string.IsNullOrEmpty(it.Value)? it.Name : it.Name + " : " + it.Value.ToString(),
+                                        Key = EventName
+                                    });                                
+                            });
+                        }
+                    }
+                }
+            }          
+            if (dd.Count > 2) 
             {
                 setQuery(dd, TestId, filename);
             }
             return FullQuery;
         }
 
-
-        private static void setQuery(Dictionary<string, string> dd, string TestId, string filename)
+        private static void setQuery(Dictionary<Guid, dicItems> dd, string TestId, string filename)
         {
             StringBuilder fullquery = new StringBuilder();
-            foreach (var item in dd.Where(x => x.Key != "Tokendt" && x.Key != "TokenNo"))
+            foreach (var item in dd)
             {
                 var qrSt = "insert into TestresultEvent (Id,TestId,RegisterDate,FileName";
-                var vaSt = $"values ('{Guid.NewGuid()}',{TestId},'{DateTime.Now}','{filename}'";
-                /*DateTime Token*/
-                var dt = dd.FirstOrDefault(x => x.Key.Equals("Tokendt")).Value;
-                var Tokendt = FromUnixTime(dt);
+                var vaSt = $"values ('{item.Key}',{TestId},'{DateTime.Now}','{filename}'";               
+                /*DateTime Token*/               
+                var Tokendt = FromUnixTime(item.Value.Tokendt);
                 //ToString("MM/dd/yyyy hh:mm:ss.fff tt") => Date and Time with Milliseconds
                 qrSt += $",TokenTime"; vaSt += $",'{Tokendt.ToString("MM/dd/yyyy hh:mm:ss.fff tt")}'";
-                /*Tonken Number*/
-                var tNo = dd.FirstOrDefault(x => x.Key.Equals("TokenNo")).Value;
-
-                qrSt += $",TokenNo"; vaSt += $",{tNo}";
+                
+                qrSt += $",TokenNo"; vaSt += $",{item.Value.TokenNo}";  
                 qrSt += $",Event";
-                vaSt += $",'{item.Key}'";
+                vaSt += $",'{item.Value.Key}'";
                 qrSt += $",V1";
-                vaSt += $",'{{{item.Value}}}'";
+                vaSt += $",'{item.Value.Value}'";
+                qrSt += $",V2";
+                vaSt += $",'{item.Value.Parent}'";
                 qrSt += ")";
                 vaSt += $");";
                 //Console.WriteLine(echPrpp);
@@ -255,8 +167,11 @@ namespace ReadingCaptureFile
             if (!string.IsNullOrEmpty(fullquery.ToString()))
             {
 
-                AdoCommand(fullquery.ToString()); ;
+                var numrec = AdoCommand(fullquery.ToString()); 
                 Console.WriteLine(fullquery.ToString());
+                Console.WriteLine("**************************");
+                Console.WriteLine($"Number Of Record:{numrec}");
+                Console.ReadKey();
             }
         }
         /// <summary>
@@ -301,5 +216,14 @@ namespace ReadingCaptureFile
         }
 
 
+    }
+
+    public class dicItems
+    {
+        public int TokenNo { get; set; }
+        public string Tokendt { get; set; }
+        public string Key { get; set; }
+        public string Value { get; set; }
+        public string Parent { get; set; }
     }
 }
